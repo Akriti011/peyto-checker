@@ -1,7 +1,3 @@
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
-@import "@fontsource/inter/700.css";
 @import "@fontsource/doto/700.css";
 @import "@fontsource/doto/900.css";
 @import "@fortawesome/fontawesome-free/css/all.min.css";
@@ -20,8 +16,8 @@
   --line: rgba(228, 0, 0, 0.14);
   --nav-shadow: 0 4px 14px rgba(181, 0, 12, 0.12);
   --card-shadow: 0 10px 30px rgba(181, 0, 12, 0.08);
-  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
-  --font-display: "Doto", "Courier New", monospace;
+  --font-sans: "Times New Roman", Times, Georgia, serif;   /* general text */
+  --font-display: "Doto", "Courier New", monospace;      /* hero + titles */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 

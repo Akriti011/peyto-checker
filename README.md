@@ -84,7 +84,7 @@ Likely sources in LightSoft: L2VPN Service List (+ Endpoints tab), *Show Ring â†
 - Palette is limited to red, white and light pink (plus a dark maroon for body text).
 - Layout and motion follow the reference landing-page spec (single viewport, pill nav, staggered reveal, dot-matrix headline, count-up stats, mobile sheet menu). Changes from that spec:
   - The stock background video is replaced by a code-drawn **animated NPT ring** (packets running primary/secondary paths). It works offline and fits the project.
-  - Fonts (Inter, **Doto** dot-matrix) and Font Awesome are bundled via npm, so nothing loads from external CDNs inside the office network.
+  - Fonts: general text uses Times New Roman (system font); the hero and titles use the **Doto** dot-matrix font. Doto and Font Awesome are bundled via npm, so nothing loads from external CDNs inside the office network.
   - Third-party brand logos are replaced with network icons.
 - `frontend/public/assets/logo.svg` is an original placeholder mark. If you have the official logo file from the brand kit, drop it in and update `header.html`.
 
