@@ -1,0 +1,187 @@
+<div class="page-wrap">
+  <app-header />
+
+  <section class="intro">
+    <span class="kicker anim" style="--d: 0.05s"><i class="fa-solid fa-diagram-project"></i> ECI NPT &middot; Peyto Feasibility</span>
+    <h1 class="section-title title anim" style="--d: 0.12s">LSI Sheet <span class="arrow">&rarr;</span> Peyto Result</h1>
+    <p class="lead anim" style="--d: 0.2s">Upload the LSI sheet you received. Every LSI is matched to its CKT IDs, traced on its ring, and checked against the ECI design guideline.</p>
+  </section>
+
+  <section class="top-grid">
+    <!-- upload -->
+    <div class="card upload anim" style="--d: 0.26s">
+      <label class="drop" [class.drag]="dragging()" [class.has]="file()"
+             (dragover)="$event.preventDefault(); dragging.set(true)" (dragleave)="dragging.set(false)" (drop)="onDrop($event)">
+        <input type="file" accept=".xlsx,.xls,.csv" (change)="onPick($event)" hidden />
+        <span class="drop-icon">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <circle cx="32" cy="32" r="22" class="r" />
+            <circle cx="32" cy="10" r="4.5" class="n" /><circle cx="51" cy="43" r="4.5" class="n" /><circle cx="13" cy="43" r="4.5" class="n" />
+          </svg>
+          <i class="fa-solid" [class.fa-arrow-up]="!file()" [class.fa-check]="file()"></i>
+        </span>
+        @if (file(); as f) {
+          <strong>{{ f.name }}</strong>
+          <span class="hint">{{ (f.size / 1024).toFixed(1) }} KB &middot; click to change</span>
+        } @else {
+          <strong>Drop your LSI sheet here</strong>
+          <span class="hint">.xlsx or .csv &middot; needs a column with "LSI" in its header</span>
+        }
+      </label>
+
+      <div class="actions">
+        <button class="btn btn-red" [disabled]="!file() || running()" (click)="run()">
+          <i class="fa-solid fa-bolt"></i> Run Check
+        </button>
+        <button class="btn btn-ghost" [disabled]="running()" (click)="run(true)">
+          <i class="fa-solid fa-flask"></i> Try Demo Sheet
+        </button>
+      </div>
+      <a class="demo-link" href="/api/demo-sheet"><i class="fa-solid fa-download"></i> Download the demo sheet to see the format</a>
+      @if (error()) { <div class="error"><i class="fa-solid fa-circle-exclamation"></i> {{ error() }}</div> }
+    </div>
+
+    <!-- pipeline -->
+    <div class="card pipeline anim" style="--d: 0.34s">
+      <div class="pipe-head">
+        <span>Check pipeline</span>
+        @if (result(); as r) {
+          <span class="pipe-meta">{{ r.summary.lsis }} LSIs &middot; {{ r.summary.elapsed_ms }} ms</span>
+        }
+      </div>
+      <ol class="steps">
+        @for (s of steps; track s.title; let i = $index) {
+          <li class="step" [class]="stepState(i)">
+            <span class="bubble">
+              @if (stepState(i) === 'done') { <i class="fa-solid fa-check"></i> }
+              @else { <i class="fa-solid" [class]="s.icon"></i> }
+            </span>
+            <span class="txt"><b>{{ s.title }}</b><small>{{ s.sub }}</small></span>
+          </li>
+        }
+      </ol>
+      <div class="bar"><span [style.width.%]="step() < 0 ? 0 : (step() / steps.length) * 100"></span></div>
+    </div>
+  </section>
+
+  @if (result(); as r) {
+    <section class="kpis" id="results">
+      @for (k of kpis(); track k.label; let i = $index) {
+        <button class="kpi anim" [class]="k.tone" [style.--d]="(i * 0.05) + 's'" (click)="filter.set(k.key)">
+          <i class="fa-solid" [class]="k.icon"></i>
+          <span class="kv" [countUp]="k.value" [duration]="900 + i * 80" [delay]="i * 60"></span>
+          <span class="kl">{{ k.label }}</span>
+        </button>
+      }
+    </section>
+
+    <section class="card results anim" style="--d: 0.2s">
+      <div class="toolbar">
+        <div class="chips">
+          @for (c of chips(); track c.key) {
+            <button class="chip" [class.on]="filter() === c.key" (click)="filter.set(c.key)">{{ c.label }} <em>{{ c.n }}</em></button>
+          }
+        </div>
+        <div class="tools">
+          <label class="search"><i class="fa-solid fa-magnifying-glass"></i>
+            <input placeholder="LSI, CKT ID, ring, E-number" [ngModel]="query()" (ngModelChange)="query.set($event)" />
+          </label>
+          <button class="btn btn-red" (click)="download()"><i class="fa-solid fa-file-arrow-down"></i> Filled Excel</button>
+        </div>
+      </div>
+
+      <div class="table">
+        <div class="tr th">
+          <span>LSI</span><span>CKT ID</span><span>Ring</span><span>Customer Mux</span><span>Peyto Feasibility</span><span>Design</span><span></span>
+        </div>
+        @for (x of rows(); track x.lsi + x.ckt_id; let i = $index) {
+          <button class="tr row" [style.--i]="i" [class.sel]="selected() === x" (click)="open(x)">
+            <span class="mono" data-l="LSI">{{ x.lsi }}</span>
+            <span class="ckt" data-l="CKT ID">{{ x.ckt_id || '—' }}</span>
+            <span data-l="Ring">{{ x.ring || '—' }}</span>
+            <span class="mono" data-l="Mux" [title]="x.customer_mux">{{ x.customer_mux ? short(x.customer_mux) : '—' }}</span>
+            <span data-l="Peyto"><span class="badge" [class]="x.status"><i class="fa-solid" [class]="icon[x.status]"></i> {{ x.label }}</span></span>
+            <span data-l="Design">
+              @if (x.design_ok === null) { <span class="muted">—</span> }
+              @else if (x.design_ok) { <span class="pass"><i class="fa-solid fa-circle-check"></i> Pass</span> }
+              @else { <span class="fail"><i class="fa-solid fa-circle-exclamation"></i> {{ failCount(x) }} issue{{ failCount(x) > 1 ? 's' : '' }}</span> }
+            </span>
+            <span class="go"><i class="fa-solid fa-chevron-right"></i></span>
+          </button>
+        } @empty {
+          <div class="empty-row">No rows match this filter.</div>
+        }
+      </div>
+    </section>
+  } @else {
+    <section class="card empty anim" style="--d: 0.42s">
+      <app-ring-map class="empty-map" [ring]="demoRing" [paths]="demoPaths" mux="N5" [compact]="true" />
+      <div>
+        <h3>No check yet</h3>
+        <p>Upload an LSI sheet, or press <b>Try Demo Sheet</b> to see 11 LSIs checked across three NPT rings.</p>
+      </div>
+    </section>
+  }
+</div>
+
+<!-- detail drawer -->
+@if (selected(); as x) {
+  <div class="scrim" (click)="close()"></div>
+  <aside class="drawer" role="dialog" aria-label="Circuit detail">
+    <header class="d-head">
+      <div>
+        <span class="d-kicker">LSI {{ x.lsi }}</span>
+        <h2>{{ x.ckt_id || 'CKT not found' }}</h2>
+        <span class="badge" [class]="x.status"><i class="fa-solid" [class]="icon[x.status]"></i> {{ x.label }}</span>
+      </div>
+      <button class="x" (click)="close()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </header>
+
+    <p class="reason"><i class="fa-solid fa-circle-info"></i> {{ x.reason }}</p>
+
+    @if (x.ring) {
+      <div class="facts">
+        <div><small>Ring</small><b>{{ x.ring }}</b></div>
+        <div><small>Service</small><b>{{ x.service_type }}</b></div>
+        <div><small>Customer mux</small><b [title]="x.customer_mux">{{ short(x.customer_mux) }}</b></div>
+      </div>
+
+      <div class="d-map">
+        @if (selRing(); as ring) {
+          <app-ring-map [ring]="ring" [paths]="x.paths" [mux]="x.customer_mux" />
+        } @else { <div class="loading"><i class="fa-solid fa-circle-notch fa-spin"></i></div> }
+        <div class="legend">
+          <span><i class="lg pri"></i>Primary</span><span><i class="lg sec"></i>Secondary</span>
+          <span><i class="lg cut"></i>Alarm</span><span><i class="lg pey"></i>Peyto router</span><span><i class="lg mux"></i>Customer mux</span>
+        </div>
+      </div>
+
+      @for (p of x.paths; track p.role) {
+        <div class="path" [class]="p.role">
+          <div class="p-head"><b>{{ p.role === 'primary' ? 'Primary path' : 'Secondary path' }}</b><span>{{ p.hops.length - 1 }} hops &middot; {{ p.peyto }}</span></div>
+          <div class="hops">
+            @for (h of p.hops; track h; let last = $last) {
+              <span class="hop" [class.end]="last" [title]="h">{{ short(h) }}</span>
+              @if (!last) { <i class="fa-solid fa-angle-right"></i> }
+            }
+          </div>
+        </div>
+      }
+
+      <h4 class="d-sub">ECI design guideline</h4>
+      <ul class="checks">
+        @for (c of x.checks; track c.id) {
+          <li [class.ok]="c.ok">
+            <i class="fa-solid" [class.fa-circle-check]="c.ok" [class.fa-circle-xmark]="!c.ok"></i>
+            <div><b>{{ c.title }}</b><small>{{ c.detail }} &middot; {{ c.ref }}</small></div>
+          </li>
+        }
+      </ul>
+    } @else {
+      <div class="nf">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <p>No NPT service carries this LSI in its Customer field. Check the LSI in the source sheet, or search LightSoft manually.</p>
+      </div>
+    }
+  </aside>
+}

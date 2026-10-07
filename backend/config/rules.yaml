@@ -1,0 +1,19 @@
+# Thresholds come from "ECI Design Guidelines for NPT Network ... using MSPW v5.2".
+# Change values here; no code change needed.
+tunnel:
+  protection: "Linear 1:1"      # IMPORTANT NOTES #3 (E-VPN AGG-AGG tunnels are the exception)
+  control_channel_cos: 7         # Prerequisite 2(e)
+  bfd_ms: 10                     # Prerequisite 2(e)
+  main_standby_distinct: true    # IMPORTANT NOTES #4
+service:
+  max_root_ports: 4              # Scenario 16 note
+  bsc_leaf: "50MB"               # IMPORTANT NOTES #1 (RAN services)
+  bsc_root: "1GE"
+  signaling_enabled: true        # IMPORTANT NOTES #5 (MSPW / MC-LAG / PWR services)
+
+# Peyto feasibility labels written to Excel (rename to match your team's sheet)
+feasibility_labels:
+  protected: "Feasible - Protected"
+  unprotected: "Feasible - Unprotected"
+  not_feasible: "Not Feasible"
+  not_found: "CKT Not Found"

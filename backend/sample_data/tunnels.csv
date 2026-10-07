@@ -1,0 +1,23 @@
+ckt_id,tunnel,mspw_role,protection,cc_cos,bfd_ms
+SIFY-T1843438,T-843438-M,main,Linear 1:1,7,10
+SIFY-T1843438,T-843438-S,standby,Linear 1:1,7,10
+SIFY-T1843438_Peyto,T-_Peyto-M,main,Linear 1:1,7,10
+SIFY-T1843438_Peyto,T-_Peyto-S,standby,Linear 1:1,7,10
+STLZ-T150102-Live,T-2-Live-M,main,Linear 1:1,7,10
+STLZ-T150102-Live,T-2-Live-S,standby,Linear 1:1,7,10
+ITP-T1645065_ENK_ODU,T-NK_ODU-M,main,Linear 1:1,7,50
+ITP-T1645065_ENK_ODU,T-NK_ODU-S,standby,Linear 1:1,7,10
+NOVA-T1712290,T-712290-M,main,Linear 1:1,7,10
+NOVA-T1712290,T-712290-M,standby,Linear 1:1,7,10
+ORBT-T1698842,T-698842-M,main,Linear 1:1,7,10
+ORBT-T1698842,T-698842-S,standby,Linear 1:1,7,10
+KRNX-T1733105,T-733105-M,main,Linear 1:1,7,10
+KRNX-T1733105,T-733105-S,standby,Linear 1:1,7,10
+VYOM-T1740021,T-740021-M,main,Linear 1:1,5,10
+VYOM-T1740021,T-740021-S,standby,Linear 1:1,7,10
+ZEPH-T1755310,T-755310-M,main,Linear 1:1,7,10
+ZEPH-T1755310,T-755310-S,standby,Linear 1:1,7,10
+TARA-T1761188,T-761188-M,main,Linear 1:1,7,10
+TARA-T1761188,T-761188-S,standby,Unprotected,7,10
+SIFY-T1860021,T-860021-M,main,Linear 1:1,7,10
+SIFY-T1860021,T-860021-S,standby,Linear 1:1,7,10

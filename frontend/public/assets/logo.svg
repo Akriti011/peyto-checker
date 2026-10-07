@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Original placeholder mark: an NPT ring with a highlighted primary path.
+       Swap for the official logo file from your brand kit if you have one. -->
+  <circle cx="32" cy="32" r="21" fill="none" stroke="#ffd6dc" stroke-width="5"/>
+  <path d="M32 11 A21 21 0 0 1 50.2 42.5" fill="none" stroke="#e40000" stroke-width="5" stroke-linecap="round"/>
+  <g fill="#ffffff" stroke="#e40000" stroke-width="3">
+    <circle cx="32" cy="11" r="5"/>
+    <circle cx="50.2" cy="42.5" r="5"/>
+    <circle cx="13.8" cy="42.5" r="5"/>
+  </g>
+  <circle cx="32" cy="32" r="5" fill="#e40000"/>
+</svg>

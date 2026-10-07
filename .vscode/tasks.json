@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    { "label": "Backend: install", "type": "shell", "command": "python3 -m pip install -r requirements.txt", "options": { "cwd": "${workspaceFolder}/backend" } },
+    { "label": "Backend: run (port 8000)", "type": "shell", "command": "python3 -m uvicorn app.main:app --reload --port 8000", "options": { "cwd": "${workspaceFolder}/backend" }, "isBackground": true, "problemMatcher": [] },
+    { "label": "Frontend: install", "type": "shell", "command": "npm install", "options": { "cwd": "${workspaceFolder}/frontend" } },
+    { "label": "Frontend: dev server (port 4200)", "type": "shell", "command": "npx ng serve", "options": { "cwd": "${workspaceFolder}/frontend" }, "isBackground": true, "problemMatcher": [] },
+    { "label": "Frontend: build", "type": "shell", "command": "npx ng build", "options": { "cwd": "${workspaceFolder}/frontend" } },
+    { "label": "Tests", "type": "shell", "command": "python3 -m pytest -q", "options": { "cwd": "${workspaceFolder}/backend" } },
+    { "label": "Dev: backend + frontend", "dependsOn": ["Backend: run (port 8000)", "Frontend: dev server (port 4200)"] }
+  ]
+}

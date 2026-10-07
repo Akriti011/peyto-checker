@@ -1,0 +1,31 @@
+<header class="header">
+  <a class="logo" routerLink="/" aria-label="Peyto Checker home">
+    <img src="assets/logo.svg" alt="" width="52" height="52" />
+  </a>
+
+  <nav class="nav-pill" aria-label="Main">
+    @for (l of links; track l.path) {
+      <a class="nav-link" [routerLink]="l.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: l.exact }">{{ l.label }}</a>
+    }
+  </nav>
+
+  <a class="console-btn" routerLink="/console"><i class="fa-solid fa-bolt"></i> Run Check</a>
+
+  <button class="burger" type="button" [class.open]="open()" (click)="toggle()"
+          [attr.aria-expanded]="open()" aria-controls="mobile-menu" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+@if (open()) {
+  <div class="overlay" (click)="close()"></div>
+  <div class="sheet" id="mobile-menu">
+    @for (l of links; track l.path; let i = $index) {
+      <a class="sheet-link" [style.--i]="i" [routerLink]="l.path" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: l.exact }" (click)="close()">{{ l.label }}</a>
+    }
+    <a class="sheet-cta" [style.--i]="links.length" routerLink="/console" (click)="close()">
+      <i class="fa-solid fa-bolt"></i> Run Check
+    </a>
+  </div>
+}

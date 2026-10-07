@@ -1,0 +1,54 @@
+<svg class="map" [class.compact]="compact()" viewBox="-80 -10 800 650" role="img" [attr.aria-label]="'Ring ' + ring().name">
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3.5" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+  </defs>
+
+  <!-- links -->
+  @for (l of view().links; track l.a + l.b) {
+    <line class="link" [class.b2b]="l.type === 'B2B-NNI'" [class.down]="l.down"
+          [attr.x1]="l.x1" [attr.y1]="l.y1" [attr.x2]="l.x2" [attr.y2]="l.y2" />
+    @if (l.role) {
+      <line class="flow" [class.primary]="l.role === 'primary'" [class.secondary]="l.role === 'secondary'"
+            [attr.x1]="l.x1" [attr.y1]="l.y1" [attr.x2]="l.x2" [attr.y2]="l.y2" />
+    }
+    @if (l.down) {
+      <g class="cut" [attr.transform]="'translate(' + l.mx + ',' + l.my + ')'">
+        <circle r="11" /><path d="M-4.5 -4.5 L4.5 4.5 M4.5 -4.5 L-4.5 4.5" />
+        <title>{{ l.alarm }} on {{ short(l.a) }} - {{ short(l.b) }}</title>
+      </g>
+    }
+  }
+
+  <!-- Peyto routers -->
+  @for (p of view().peyto; track p.id) {
+    <g class="peyto">
+      <rect [attr.x]="p.x - 13" [attr.y]="p.y - 13" width="26" height="26" rx="7" />
+      <path [attr.transform]="'translate(' + p.x + ',' + p.y + ')'" d="M-6 -2 H6 M-6 3 H6" />
+      @if (!compact()) {
+        <text [attr.x]="p.lx" [attr.y]="p.ly" [attr.text-anchor]="p.anchor" class="plabel">{{ p.id }}</text>
+      }
+      <title>{{ p.id }} (via B2B NNI from {{ p.gw }})</title>
+    </g>
+  }
+
+  <!-- NEs -->
+  @for (n of view().nodes; track n.node) {
+    <g class="ne" [class.gw]="n.gw" [class.mux]="n.isMux" [class.lit]="n.lit">
+      @if (n.isMux) {
+        <circle class="ping" [attr.cx]="n.x" [attr.cy]="n.y" r="12" />
+      }
+      <circle class="dot" [attr.cx]="n.x" [attr.cy]="n.y" [attr.r]="n.gw || n.isMux ? 9 : 6" />
+      @if (!compact()) {
+        <text [attr.x]="n.lx" [attr.y]="n.ly" [attr.text-anchor]="n.anchor">{{ short(n.node) }}</text>
+      }
+      <title>{{ n.node }}{{ n.gw ? ' (' + n.role + ')' : '' }}{{ n.isMux ? ' - customer mux' : '' }}</title>
+    </g>
+  }
+
+  @if (!compact()) {
+    <text x="320" y="312" text-anchor="middle" class="ring-name">{{ ring().name }}</text>
+    <text x="320" y="336" text-anchor="middle" class="ring-sub">{{ ring().nodes.length }} NEs &middot; {{ ring().kind === 'ring' ? 'closed ring' : 'linear' }}</text>
+  }
+</svg>

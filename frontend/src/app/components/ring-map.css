@@ -1,0 +1,35 @@
+:host { display: block; }
+.map { width: 100%; height: auto; display: block; overflow: visible; }
+
+.link { stroke: var(--pink-mid); stroke-width: 3; stroke-linecap: round; }
+.link.b2b { stroke: var(--red); stroke-width: 2; stroke-dasharray: 5 5; opacity: 0.6; }
+.link.down { stroke: var(--red-deep); stroke-dasharray: 3 6; opacity: 0.9; }
+
+.flow { stroke-width: 7; stroke-linecap: round; stroke-dasharray: 14 10; animation: flow 1.1s linear infinite; filter: url(#glow); }
+.flow.primary { stroke: var(--red); }
+.flow.secondary { stroke: #ff8fa1; animation-direction: reverse; }
+@keyframes flow { to { stroke-dashoffset: -48; } }
+
+.cut circle { fill: var(--white); stroke: var(--red-deep); stroke-width: 2.5; }
+.cut path { stroke: var(--red-deep); stroke-width: 2.5; stroke-linecap: round; }
+.cut { cursor: help; }
+
+.peyto rect { fill: var(--red); stroke: var(--white); stroke-width: 3; filter: drop-shadow(0 4px 8px rgba(181,0,12,0.3)); }
+.peyto path { stroke: var(--white); stroke-width: 2; stroke-linecap: round; }
+.plabel { font: 700 12px var(--font-sans); fill: var(--red); }
+
+.ne .dot { fill: var(--white); stroke: var(--red); stroke-width: 2.5; transition: r 0.2s; }
+.ne.gw .dot { fill: var(--red); stroke: var(--white); stroke-width: 3; }
+.ne.lit .dot { stroke-width: 3.5; }
+.ne.mux .dot { fill: var(--red); stroke: var(--white); stroke-width: 3; }
+.ne text { font: 500 11px var(--font-sans); fill: var(--muted); }
+.ne.gw text, .ne.mux text, .ne.lit text { fill: var(--ink); font-weight: 600; }
+.ne.mux text { fill: var(--red); font-weight: 700; }
+.ping { fill: none; stroke: var(--red); stroke-width: 2.5; transform-box: fill-box; transform-origin: center; animation: ping 1.8s var(--ease) infinite; }
+@keyframes ping { 0% { transform: scale(0.8); opacity: 0.9; } 100% { transform: scale(2.6); opacity: 0; } }
+
+.ring-name { font: 900 34px var(--font-display); fill: var(--red); letter-spacing: -0.04em; }
+.ring-sub { font: 500 13px var(--font-sans); fill: var(--muted); }
+
+.compact .link { stroke-width: 4; }
+.compact .ne .dot { stroke-width: 3; }

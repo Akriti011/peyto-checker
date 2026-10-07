@@ -1,0 +1,106 @@
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/doto/700.css";
+@import "@fontsource/doto/900.css";
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+
+/* Palette: red / white / light pink only (+ maroon ink, a dark red, for readable text) */
+:root {
+  --red: #e40000;
+  --red-deep: #b5000c;
+  --red-glow: rgba(228, 0, 0, 0.32);
+  --ink: #3a0a10;
+  --muted: #9a5b66;
+  --pink: #ffd6dc;
+  --pink-mid: #ffb3bf;
+  --blush: #fff1f3;
+  --white: #ffffff;
+  --line: rgba(228, 0, 0, 0.14);
+  --nav-shadow: 0 4px 14px rgba(181, 0, 12, 0.12);
+  --card-shadow: 0 10px 30px rgba(181, 0, 12, 0.08);
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Doto", "Courier New", monospace;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  background: var(--blush);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body.lock { overflow: hidden; }
+body.menu-open { overflow: hidden; }
+button { font-family: inherit; }
+a { color: inherit; }
+::selection { background: var(--pink); color: var(--ink); }
+
+/* ---- shared entrance animation (from the reference layout) ---- */
+.anim {
+  opacity: 0;
+  transform: translateY(22px) scale(0.98);
+  filter: blur(6px);
+  animation: reveal 0.85s var(--ease) forwards;
+  animation-delay: var(--d, 0s);
+}
+@keyframes reveal { to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes revealPulse {
+  0% { opacity: 0; transform: translateY(22px) scale(0.96); filter: blur(6px); }
+  70% { opacity: 1; transform: translateY(0) scale(1.03); filter: blur(0); }
+  100% { opacity: 1; transform: none; filter: blur(0); }
+}
+@keyframes slideDown { from { opacity: 0; transform: translateY(-18px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---- reusable bits ---- */
+.card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: var(--card-shadow);
+}
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 0; cursor: pointer; border-radius: 999px;
+  font-weight: 600; font-size: 14px; padding: 11px 20px;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s, background 0.2s, color 0.2s;
+  text-decoration: none; white-space: nowrap;
+}
+.btn-red { background: var(--red); color: var(--white); box-shadow: 0 0 0 1px rgba(228,0,0,0.1), 0 8px 22px var(--red-glow); }
+.btn-red:hover { background: var(--red-deep); transform: translateY(-1px); }
+.btn-ghost { background: var(--white); color: var(--red); box-shadow: inset 0 0 0 1.5px var(--pink-mid); }
+.btn-ghost:hover { background: var(--blush); transform: translateY(-1px); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* status badges */
+.badge {
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  font-size: 12px; font-weight: 600; padding: 5px 11px; border-radius: 999px;
+}
+.badge.protected { background: var(--red); color: var(--white); }
+.badge.unprotected { background: var(--pink); color: var(--ink); box-shadow: inset 0 0 0 1px var(--pink-mid); }
+.badge.not_feasible { background: var(--white); color: var(--red); box-shadow: inset 0 0 0 1.5px var(--red); }
+.badge.not_found { background: var(--blush); color: var(--muted); box-shadow: inset 0 0 0 1px dashed var(--pink-mid); border: 1px dashed var(--pink-mid); }
+
+.page-wrap {
+  min-height: 100dvh;
+  padding: clamp(16px, 2.4vh, 28px) clamp(14px, 3vw, 32px) 48px;
+  background:
+    radial-gradient(1200px 500px at 85% -10%, rgba(255, 179, 191, 0.55), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(255, 214, 220, 0.7), transparent 60%),
+    var(--blush);
+}
+.section-title {
+  font-family: var(--font-display); font-weight: 900; color: var(--red);
+  letter-spacing: -0.04em; line-height: 1.05; margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .anim { opacity: 1; transform: none; filter: none; }
+}
