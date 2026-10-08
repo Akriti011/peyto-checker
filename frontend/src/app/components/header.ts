@@ -1,4 +1,4 @@
-import { Component, HostListener, effect, signal } from '@angular/core';
+import { Component, HostListener, effect, input, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
@@ -8,6 +8,8 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   styleUrl: './header.css',
 })
 export class Header {
+  /** hidden on the landing page, where the hero already shows the Airtel logo */
+  readonly showLogo = input(true);
   readonly links = [
     { label: 'Home', path: '/', exact: true },
     { label: 'Check', path: '/console', exact: false },

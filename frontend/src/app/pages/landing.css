@@ -9,19 +9,26 @@
 .page > .hero { pointer-events: none; }
 .hero a { pointer-events: auto; }
 
-/* everything on the page is driven by the film clock (--rt, seconds) */
-.hdr, .r1, .r2, .r3, .r4, .r5 {
-  --k: clamp(0, calc((var(--rt, 0) - var(--at)) / 0.8), 1);
-  opacity: var(--k);
-  transform: translateY(calc((1 - var(--k)) * 14px));
-  filter: blur(calc((1 - var(--k)) * 6px));
+/* full-screen intro video; frozen and dimmed at the cut so the HTML hero reads on top */
+.bg-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; background: #050102; }
+/* a plain overlay, not a CSS filter: filters on the 4K video stop the page compositing on top */
+.scrim { position: absolute; inset: 0; z-index: 1; background: rgba(5, 1, 2, 0.62); opacity: 0;
+  pointer-events: none; transition: opacity 0.8s var(--ease); }
+.scrim.on { opacity: 1; }
+
+/* header, hero text, CTA and stats stay hidden until the video ends */
+.hdr, .brand, .title, .tag, .cta, .stats { opacity: 0; pointer-events: none; transition: opacity 0.6s var(--ease); }
+.page.show .hdr, .page.show .brand, .page.show .title, .page.show .tag,
+.page.show .cta, .page.show .stats { opacity: 1; pointer-events: auto; }
+.hdr { width: 100%; flex-shrink: 0; display: block; }
+
+.skip {
+  position: absolute; right: clamp(14px, 2vw, 28px); bottom: clamp(14px, 2vh, 28px); z-index: 3;
+  background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 999px;
+  padding: 6px 14px; font-size: 13px; cursor: pointer; transition: background 0.2s;
 }
-.hdr { --at: 15.7; width: 100%; flex-shrink: 0; display: block; }
-.r1 { --at: 14.6; }
-.r2 { --at: 14.85; }
-.r3 { --at: 15.15; }
-.r4 { --at: 15.4; }
-.r5 { --at: 15.8; }
+.skip:hover { background: rgba(255, 255, 255, 0.18); }
 
 .hero {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -30,8 +37,8 @@
 .brand { width: clamp(120px, 13vw, 230px); height: auto; margin-bottom: clamp(14px, 2.6vh, 34px);
   filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.25)); }
 .title {
-  margin: 0; font-family: var(--font-display); font-weight: 900; color: #fff;
-  font-size: clamp(34px, 7.4vw, 150px); line-height: 1; letter-spacing: 0.02em; white-space: nowrap;
+  margin: 0; font-family: var(--font-display); font-weight: 700; color: #fff;
+  font-size: clamp(34px, 6.6vw, 136px); line-height: 1.05; letter-spacing: -0.01em; white-space: nowrap;
   text-shadow: 0 0 28px rgba(228, 0, 0, 0.55), 0 0 2px rgba(255, 255, 255, 0.6);
 }
 .tag {

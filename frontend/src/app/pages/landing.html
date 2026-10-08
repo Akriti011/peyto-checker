@@ -1,17 +1,19 @@
-<app-hero-film (time)="t.set($event)" />
+<video #vid class="bg-video" src="hero/hero.mp4" autoplay muted playsinline preload="auto"
+       (ended)="onVideoEnd()" (timeupdate)="onTime(vid)"></video>
+<div class="scrim" [class.on]="ended()"></div>
 
-<main class="page" [style.--rt]="t()">
-  <app-header class="hdr" />
+<main class="page" [class.show]="ended()">
+  <app-header class="hdr" [showLogo]="false" />
 
   <section class="hero">
-    <img class="brand r1" src="hero/logo.png" alt="airtel" />
-    <h1 class="title r2">PEYTO CHECKER</h1>
-    <p class="tag r3">Automated network feasibility,<br />from LSI to protected path.</p>
-    <a class="cta r4" routerLink="/console">Upload LSI Excel <i class="fa-solid fa-arrow-right"></i></a>
+    <img class="brand" src="assets/airtel-logo-white.svg" alt="airtel" />
+    <h1 class="title">PEYTO CHECKER</h1>
+    <p class="tag">Automated network feasibility,<br />from LSI to protected path.</p>
+    <a class="cta" routerLink="/console">Upload LSI Excel <i class="fa-solid fa-arrow-right"></i></a>
   </section>
 
-  <footer class="stats r5">
-    @if (t() > 15.6) {
+  <footer class="stats">
+    @if (ended()) {
       @for (s of stats(); track s.label; let i = $index) {
         <div class="stat">
           <span class="value" [countUp]="s.value" [decimals]="s.dec" [suffix]="s.suffix"
@@ -22,3 +24,7 @@
     }
   </footer>
 </main>
+
+@if (!ended()) {
+  <button class="skip" type="button" (click)="skip(vid)">Skip intro</button>
+}

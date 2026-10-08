@@ -58,7 +58,7 @@ import { RingMap } from '../components/ring-map';
     .ring-card:hover { transform: translateY(-2px); }
     .ring-card.on { border:2px solid var(--red); }
     .rc-top { display:flex; justify-content:space-between; align-items:center; gap:8px; }
-    .rc-top b { font-family: var(--font-display); font-weight:900; font-size:22px; color:var(--red); letter-spacing:-0.04em; }
+    .rc-top b { font-family: var(--font-display); font-weight:700; font-size:20px; color:var(--red); letter-spacing:-0.01em; }
     .alarm { font-size:12px; font-weight:600; color:var(--white); background:var(--red); padding:3px 9px; border-radius:999px; }
     .ok { font-size:12px; font-weight:600; color:var(--red); background:var(--blush); padding:3px 9px; border-radius:999px; }
     .rc-meta { display:flex; gap:10px; font-size:12.5px; color:var(--muted); margin:6px 0 8px; }

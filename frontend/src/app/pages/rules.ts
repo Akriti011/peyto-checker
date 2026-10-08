@@ -46,7 +46,7 @@ import { Header } from '../components/header';
     code { background: var(--pink); padding: 1px 6px; border-radius: 6px; font-size: 13px; color: var(--ink); }
     .rules { max-width:980px; margin:0 auto; display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
     .rule { display:flex; align-items:center; gap:14px; background:var(--white); border:1px solid var(--line); border-radius:18px; padding:14px 16px; box-shadow: var(--card-shadow); }
-    .num { font-family: var(--font-display); font-weight:900; font-size:30px; color:var(--red); letter-spacing:-0.05em; }
+    .num { font-family: var(--font-display); font-weight:700; font-size:28px; color:var(--red); letter-spacing:-0.01em; }
     .rule div { flex:1; display:flex; flex-direction:column; gap:2px; }
     .rule b { font-size:14.5px; }
     .rule small { font-size:12px; color:var(--muted); }

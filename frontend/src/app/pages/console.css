@@ -115,7 +115,7 @@
 
 .empty { max-width: 1180px; margin: 22px auto 0; padding: 22px 26px; display: flex; align-items: center; gap: 26px; }
 .empty-map { width: 150px; flex-shrink: 0; }
-.empty h3 { margin: 0 0 6px; font-family: var(--font-display); font-weight: 900; color: var(--red); font-size: 28px; letter-spacing: -0.04em; }
+.empty h3 { margin: 0 0 6px; font-family: var(--font-display); font-weight: 700; color: var(--red); font-size: 26px; letter-spacing: -0.01em; }
 .empty p { margin: 0; color: var(--muted); line-height: 1.55; }
 
 /* drawer */

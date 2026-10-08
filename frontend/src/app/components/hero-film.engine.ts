@@ -357,7 +357,7 @@ export class HeroFilm {
     ctx.globalCompositeOperation = 'source-over';
     const label = (txt: string, p: Pt, dx: number, dy: number, la: number, color = '255,225,228', align: CanvasTextAlign = 'center') => {
       if (la <= 0.01) return;
-      ctx.font = `600 ${Math.round(13 * d)}px "Times New Roman", Times, serif`;
+      ctx.font = `600 ${Math.round(13 * d)}px Poppins, Arial, sans-serif`;
       (ctx as any).letterSpacing = `${(3 * d).toFixed(1)}px`;
       ctx.textAlign = align; ctx.textBaseline = 'middle';
       ctx.fillStyle = `rgba(${color},${la})`;

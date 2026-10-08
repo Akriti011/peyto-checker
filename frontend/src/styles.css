@@ -1,5 +1,5 @@
-@import "@fontsource/doto/700.css";
-@import "@fontsource/doto/900.css";
+@import "@fontsource/poppins/600.css";
+@import "@fontsource/poppins/700.css";
 @import "@fortawesome/fontawesome-free/css/all.min.css";
 
 /* Palette: red / white / light pink only (+ maroon ink, a dark red, for readable text) */
@@ -17,7 +17,7 @@
   --nav-shadow: 0 4px 14px rgba(181, 0, 12, 0.12);
   --card-shadow: 0 10px 30px rgba(181, 0, 12, 0.08);
   --font-sans: "Times New Roman", Times, Georgia, serif;   /* general text */
-  --font-display: "Doto", "Courier New", monospace;      /* hero + titles */
+  --font-display: "Poppins", "Segoe UI", Arial, sans-serif;  /* hero + titles: clean, easy to read */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -92,8 +92,8 @@ a { color: inherit; }
     var(--blush);
 }
 .section-title {
-  font-family: var(--font-display); font-weight: 900; color: var(--red);
-  letter-spacing: -0.04em; line-height: 1.05; margin: 0;
+  font-family: var(--font-display); font-weight: 700; color: var(--red);
+  letter-spacing: -0.015em; line-height: 1.05; margin: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

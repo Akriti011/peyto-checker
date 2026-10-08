@@ -10,12 +10,12 @@
 
 .logo {
   flex-shrink: 0;
-  width: clamp(40px, 4.4vw, 46px); height: clamp(40px, 4.4vw, 46px);
-  border-radius: 50%; background: var(--white); box-shadow: var(--nav-shadow);
+  height: clamp(44px, 5.2vw, 48px); padding: 0 18px;
+  border-radius: 999px; background: var(--white); box-shadow: var(--nav-shadow);
   display: grid; place-items: center; transition: transform 0.25s var(--ease);
 }
 .logo:hover { transform: scale(1.04); }
-.logo img { width: 72%; height: 72%; object-fit: contain; }
+.logo img { height: 26px; width: auto; display: block; }
 
 .nav-pill {
   flex: 1; max-width: 430px;
@@ -99,7 +99,7 @@
 
 @media (max-width: 720px) {
   .header { justify-content: space-between; max-width: none; }
-  .logo { width: 48px; height: 48px; }
+  .logo { height: 48px; padding: 0 16px; }
   .nav-pill, .console-btn { display: none; }
   .burger { display: block; }
 }

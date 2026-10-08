@@ -1,7 +1,9 @@
 <header class="header">
-  <a class="logo" routerLink="/" aria-label="Peyto Checker home">
-    <img src="assets/logo.svg" alt="" width="52" height="52" />
-  </a>
+  @if (showLogo()) {
+    <a class="logo" routerLink="/" aria-label="Peyto Checker home">
+      <img src="assets/airtel-logo-red.svg" alt="airtel" />
+    </a>
+  }
 
   <nav class="nav-pill" aria-label="Main">
     @for (l of links; track l.path) {

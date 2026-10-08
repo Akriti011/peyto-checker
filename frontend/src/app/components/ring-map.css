@@ -28,7 +28,7 @@
 .ping { fill: none; stroke: var(--red); stroke-width: 2.5; transform-box: fill-box; transform-origin: center; animation: ping 1.8s var(--ease) infinite; }
 @keyframes ping { 0% { transform: scale(0.8); opacity: 0.9; } 100% { transform: scale(2.6); opacity: 0; } }
 
-.ring-name { font: 900 34px var(--font-display); fill: var(--red); letter-spacing: -0.04em; }
+.ring-name { font: 700 30px var(--font-display); fill: var(--red); letter-spacing: -0.01em; }
 .ring-sub { font: 500 13px var(--font-sans); fill: var(--muted); }
 
 .compact .link { stroke-width: 4; }
