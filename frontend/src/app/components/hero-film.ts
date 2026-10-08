@@ -15,7 +15,7 @@ import { exportFilm } from './film-export';
     @if (ready() && !done()) {
       <button class="f3-skip" type="button" (click)="skip()">Skip intro <i class="fa-solid fa-forward"></i></button>
     }
-    @if (done() && !exporting()) {
+    @if (done() && !exporting() && !failed()) {
       <button class="f3-skip light" type="button" (click)="replay()"><i class="fa-solid fa-rotate-right"></i> Replay</button>
     }
     @if (exportMode && ready()) {
@@ -66,6 +66,7 @@ export class HeroFilm implements AfterViewInit, OnDestroy {
   readonly time = output<number>();
   readonly ready = signal(false);
   readonly done = signal(false);
+  readonly failed = signal(false);
   readonly exporting = signal(false);
   readonly exportMsg = signal('');
   readonly exportMode = new URLSearchParams(location.search).has('export');
@@ -86,7 +87,15 @@ export class HeroFilm implements AfterViewInit, OnDestroy {
     await document.fonts?.ready;
     if (this.destroyed) return;   // left the page while the logo/fonts were loading
     const canvas = this.cv().nativeElement;
-    this.film = new Film3D(canvas, this.ov().nativeElement, logo);
+    try {
+      this.film = new Film3D(canvas, this.ov().nativeElement, logo);
+    } catch (e) {
+      // no WebGL (e.g. hardware acceleration off): skip the film, show the landing hero straight away
+      console.warn('Hero film disabled, WebGL unavailable:', e);
+      this.failed.set(true);
+      this.time.emit(FILM_LENGTH);
+      return;
+    }
     // ?rec = export mode (full 2x pixel density); live view caps density for smooth playback
     const rec = new URLSearchParams(location.search).has('rec');
     const size = () => {
