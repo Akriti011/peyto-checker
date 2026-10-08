@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Api } from '../core/api.service';
 import { CountUp } from '../core/count-up.directive';
@@ -10,8 +10,9 @@ import { Header } from '../components/header';
   templateUrl: './landing.html',
   styleUrl: './landing.css',
 })
-export class Landing implements OnInit, OnDestroy {
+export class Landing implements OnInit, AfterViewInit, OnDestroy {
   private api = inject(Api);
+  private vid = viewChild.required<ElementRef<HTMLVideoElement>>('vid');
   /** video clock in seconds */
   readonly t = signal(0);
   /** true once the intro video has finished; reveals CTA, header and stats */
@@ -36,6 +37,13 @@ export class Landing implements OnInit, OnDestroy {
       ]);
     } catch { /* backend offline: keep defaults */ }
   }
+  ngAfterViewInit() {
+    // Angular's `muted` attribute does not set the property, which autoplay needs
+    const v = this.vid().nativeElement;
+    v.muted = true;
+    v.play().catch(() => this.skip(v)); // autoplay blocked: go straight to the final frame
+  }
+
   onVideoEnd() { this.ended.set(true); }
 
   /** the recording shows the old landing UI after this point, so freeze on the network frame */

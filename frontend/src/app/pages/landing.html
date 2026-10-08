@@ -1,4 +1,4 @@
-<video #vid class="bg-video" src="hero/hero.mp4" autoplay muted playsinline preload="auto"
+<video #vid class="bg-video" src="hero/hero.mp4" autoplay [muted]="true" playsinline preload="auto"
        (ended)="onVideoEnd()" (timeupdate)="onTime(vid)"></video>
 <div class="scrim" [class.on]="ended()"></div>
 
