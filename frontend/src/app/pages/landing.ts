@@ -1,30 +1,28 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, signal, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Header } from '../components/header';
+import { HeroFilm } from '../components/hero-film';
+import { FILM_LENGTH } from '../components/film3d';
 
 @Component({
   selector: 'app-landing',
-  imports: [RouterLink, Header],
+  imports: [RouterLink, Header, HeroFilm],
   templateUrl: './landing.html',
   styleUrl: './landing.css',
 })
-export class Landing implements OnInit, AfterViewInit, OnDestroy {
-  private vid = viewChild.required<ElementRef<HTMLVideoElement>>('vid');
-  /** video clock in seconds */
+export class Landing implements OnInit, OnDestroy {
+  /** film clock in seconds (live 3D hero, see film3d.ts) */
   readonly t = signal(0);
-  /** true once the intro video has finished; reveals the header and hero */
+  /** true once the intro film has finished; reveals the header and hero */
   readonly ended = signal(false);
+
   ngOnInit() { document.body.classList.add('lock'); }
-  ngAfterViewInit() {
-    // Angular's `muted` attribute does not set the property, which autoplay needs
-    const v = this.vid().nativeElement;
-    v.muted = true;
-    v.play().catch(() => this.skip(v)); // autoplay blocked: go straight to the final frame
+
+  onTime(t: number) {
+    this.t.set(t);
+    const done = t >= FILM_LENGTH;
+    if (done !== this.ended()) this.ended.set(done);   // Replay resets it
   }
 
-  onVideoEnd() { this.ended.set(true); }
-
-  onTime(v: HTMLVideoElement) { this.t.set(v.currentTime); }
-  skip(v: HTMLVideoElement) { v.currentTime = v.duration; this.onVideoEnd(); }
   ngOnDestroy() { document.body.classList.remove('lock'); }
 }

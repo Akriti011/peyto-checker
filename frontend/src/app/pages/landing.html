@@ -1,5 +1,4 @@
-<video #vid class="bg-video" src="hero/hero.mp4" autoplay [muted]="true" playsinline preload="auto"
-       (ended)="onVideoEnd()" (timeupdate)="onTime(vid)"></video>
+<app-hero-film (time)="onTime($event)" />
 <div class="scrim" [class.on]="ended()"></div>
 
 <main class="page" [class.show]="ended()">
@@ -12,7 +11,3 @@
     <a class="cta" routerLink="/console">Upload LSI Excel <i class="fa-solid fa-arrow-right"></i></a>
   </section>
 </main>
-
-@if (!ended()) {
-  <button class="skip" type="button" (click)="skip(vid)">Skip intro</button>
-}

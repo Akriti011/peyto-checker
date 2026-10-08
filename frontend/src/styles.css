@@ -100,3 +100,11 @@ a { color: inherit; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .anim { opacity: 1; transform: none; filter: none; }
 }
+
+/* hero film export (?export): lay the landing page out at exactly 1920x1080 (rendered at 2x = 4K) */
+body.film-exporting app-landing {
+  position: fixed !important; left: 0; top: 0; z-index: 1000;
+  width: 1920px !important; height: 1080px !important;
+  transform: scale(var(--export-scale, 0.5)); transform-origin: 0 0;
+}
+body.film-exporting app-landing .page { height: 1080px !important; }

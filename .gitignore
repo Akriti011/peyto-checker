@@ -6,3 +6,8 @@ __pycache__/
 .browser_profile/
 debug_screens/
 lsi_ckt_result.xlsx
+
+# frontend test artifacts
+frontend/prof/
+frontend/*.png
+frontend/dist/
