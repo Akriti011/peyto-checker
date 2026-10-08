@@ -1,0 +1,18 @@
+# Chitragupt bot settings. Sirf ye file badalni hai, code nahi.
+# Login ID / password yahan KABHI mat likhna.
+
+# 1) Chitragupt ka link: browser ke address bar se copy karke yahan paste karo
+chitragupt_url: "PASTE_CHITRAGUPT_URL_HERE"
+
+# 2) CKT ID kaisi dikhti hai (pattern). Example: SIFY-T1843438, STLZ-T150102-Live, ITP-T1645065_ENK_ODU
+#    Agar bot galat cheez pakde ya kuch na pakde, ye pattern adjust karenge.
+ckt_id_regex: '\b[A-Z][A-Z0-9]{1,9}-T\d{4,}[A-Za-z0-9_\-]*'
+
+# 3) Search box: khaali chhodo, bot khud dhoondhega. Na mile to Claude se selector likhwa lo.
+search_selector: ""
+search_button_selector: ""     # khaali = Enter dabayega
+
+# 4) Speed (seconds)
+wait_seconds: 10               # result aane ka max wait
+extra_wait_seconds: 1
+delay_between_searches: 1      # site pe load na pade

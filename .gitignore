@@ -2,3 +2,7 @@ node_modules/
 __pycache__/
 .pytest_cache/
 .angular/
+
+.browser_profile/
+debug_screens/
+lsi_ckt_result.xlsx
