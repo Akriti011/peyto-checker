@@ -11,18 +11,6 @@
     <p class="tag">Automated network feasibility,<br />from LSI to protected path.</p>
     <a class="cta" routerLink="/console">Upload LSI Excel <i class="fa-solid fa-arrow-right"></i></a>
   </section>
-
-  <footer class="stats">
-    @if (ended()) {
-      @for (s of stats(); track s.label; let i = $index) {
-        <div class="stat">
-          <span class="value" [countUp]="s.value" [decimals]="s.dec" [suffix]="s.suffix"
-                [duration]="1400 + i * 80" [delay]="i * 90"></span>
-          <span class="label">{{ s.label }}</span>
-        </div>
-      }
-    }
-  </footer>
 </main>
 
 @if (!ended()) {
