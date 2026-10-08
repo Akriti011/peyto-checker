@@ -12,3 +12,9 @@ frontend/prof/
 frontend/*.png
 frontend/dist/
 /PeytoChecker_Hero_4K.mp4
+
+# secrets + live data (never commit)
+.env
+nms_exports/
+backend/nms_exports/
+.update/

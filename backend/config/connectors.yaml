@@ -1,0 +1,67 @@
+# Peyto Checker connector settings (NO passwords here, those go in .env)
+#
+# MODE is chosen by PEYTO_MODE in .env:
+#   demo -> fake systems from mock_systems/ (works on any laptop, synthetic data)
+#   live -> real Chitragupt / T3-T4 nodes / NMS export (only inside Airtel network)
+
+ckt_id_regex: '\b[A-Z][A-Z0-9]{1,9}-T\d{4,}[A-Za-z0-9_\-]*'
+retries: 2                 # extra attempts when a system times out
+retry_wait_seconds: 2
+
+# ---------------------------------------------------------------- Chitragupt
+chitragupt:
+  enabled: true
+  # api     -> call the same URL the web page calls (find it with F12 > Network)
+  # browser -> drive a headless Chrome with Playwright (if there is no clean API)
+  strategy: api
+  timeout_seconds: 15
+  delay_between_searches: 0.5      # be gentle with the server
+  demo:
+    base_url: "http://127.0.0.1:8101"
+  live:
+    base_url: ""                   # comes from CHITRAGUPT_URL in .env
+  login:
+    path: "/login"                 # "" if the API needs no login
+    username_field: "username"
+    password_field: "password"
+  api:
+    search_path: "/api/search?lsi={lsi}"
+  browser:
+    search_page: "/search"
+    username_selector: "#username"
+    password_selector: "#password"
+    submit_selector: "#login"
+    search_selector: "input[type=search]"
+    search_button_selector: ""     # "" = press Enter
+
+# ---------------------------------------------------------------- SSH (PuTTY step)
+ssh:
+  enabled: true
+  # netmiko device type of the T3/T4 nodes: cisco_xr, cisco_ios, juniper_junos,
+  # nokia_sros, huawei ... ("generic" works for the demo nodes)
+  device_type: "generic"
+  # {lsi} is replaced with the LSI. Must be a read-only command.
+  command: "show l2vpn xconnect description | include {lsi}"
+  allowed_command_prefixes: ["show", "display"]
+  timeout_seconds: 20
+  # Which tier to try first when Chitragupt gives no hint
+  tier_order: ["T3", "T4"]
+  demo:
+    nodes:
+      T3: ["127.0.0.1:2201"]
+      T4: ["127.0.0.1:2202"]
+  live:
+    # Fill real node IPs (or put them in .env as SSH_T3_NODES / SSH_T4_NODES, comma separated)
+    nodes:
+      T3: []                       # 202.123.x.x nodes
+      T4: []                       # 116.119.x.x nodes
+
+# ---------------------------------------------------------------- NMS (LightSoft)
+nms:
+  # export -> read files exported from LightSoft (column names mapped in nms_export.yaml)
+  # (nbi   -> future: northbound API, once the NMS team allows it)
+  source: export
+  demo:
+    export_dir: "sample_data"
+  live:
+    export_dir: ""                 # comes from NMS_EXPORT_DIR in .env

@@ -1,0 +1,14 @@
+**/node_modules
+**/.angular
+**/__pycache__
+**/.pytest_cache
+.venv
+.git
+frontend/dist
+frontend/prof
+frontend/*.png
+*.mp4
+.env
+nms_exports
+chitragupt_bot/.browser_profile
+chitragupt_bot/debug_screens

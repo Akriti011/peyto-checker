@@ -1,5 +1,7 @@
 @echo off
-REM Starts the POC at http://localhost:8000 (UI already built in frontend\dist)
-cd /d "%~dp0backend"
-python -m pip install -r requirements.txt
-python -m uvicorn app.main:app --port 8000
+REM Starts Peyto Checker at http://localhost:8000  (mode from .env -> PEYTO_MODE)
+cd /d %~dp0
+if not exist .env copy .env.example .env
+cd backend
+python -m pip install -q -r requirements.txt
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000

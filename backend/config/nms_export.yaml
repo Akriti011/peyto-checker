@@ -1,0 +1,36 @@
+# How to read NMS (LightSoft) export files.
+#
+# Left side  = name the engine uses (don't change)
+# Right side = column header exactly as it appears in YOUR export file
+#
+# The demo files in sample_data/ already use the engine names, so nothing is
+# mapped below. When you get a real LightSoft export, open it, look at the
+# header row and fill the right-hand side. Example:
+#
+#   services:
+#     file: "L2VPN_Service_List.xlsx"
+#     columns:
+#       ckt_id: "Label"
+#       customer_mux: "Customer NE"
+#       ring: "Ring Name"
+#     defaults:            # used when the export simply has no such column
+#       bsc_leaf: "50MB"
+#
+tables:
+  services:
+    file: "services.csv"
+    columns: {}
+    defaults: {}
+  tunnels:
+    file: "tunnels.csv"
+    columns: {}
+    defaults: {}
+  ring_nodes:
+    file: "ring_nodes.csv"
+    columns: {}
+    defaults: {}
+  ring_links:
+    file: "ring_links.csv"
+    columns: {}
+    defaults:
+      alarm: ""

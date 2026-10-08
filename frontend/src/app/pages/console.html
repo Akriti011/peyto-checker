@@ -2,9 +2,10 @@
   <app-header />
 
   <section class="intro">
-    <span class="kicker anim" style="--d: 0.05s"><i class="fa-solid fa-diagram-project"></i> ECI NPT &middot; Peyto Feasibility</span>
+    <span class="kicker anim" style="--d: 0.05s"><i class="fa-solid fa-diagram-project"></i> ECI NPT &middot; Peyto Feasibility
+      @if (health(); as h) { <span class="mode-pill" [class.live]="h.mode === 'live'">{{ h.mode === 'live' ? 'LIVE' : 'DEMO · synthetic data' }}</span> }</span>
     <h1 class="section-title title anim" style="--d: 0.12s">LSI Sheet <span class="arrow">&rarr;</span> Peyto Result</h1>
-    <p class="lead anim" style="--d: 0.2s">Upload the LSI sheet you received. Every LSI is matched to its CKT IDs, traced on its ring, and checked against the ECI design guideline.</p>
+    <p class="lead anim" style="--d: 0.2s">Upload the LSI sheet you received. Every LSI is searched in Chitragupt (or on the T3/T4 nodes if Chitragupt has nothing), traced on its ring to Peyto, and checked against the ECI design guideline.</p>
   </section>
 
   <section class="top-grid">
@@ -64,6 +65,11 @@
     </div>
   </section>
 
+  @if (running() || (liveRows().length && progress().done < progress().total)) {
+    <app-live-progress class="live-wrap" [rows]="liveRows()" [done]="progress().done" [total]="progress().total"
+                       [current]="progress().current" [running]="running()" />
+  }
+
   @if (result(); as r) {
     <section class="kpis" id="results">
       @for (k of kpis(); track k.label; let i = $index) {
@@ -92,12 +98,13 @@
 
       <div class="table">
         <div class="tr th">
-          <span>LSI</span><span>CKT ID</span><span>Ring</span><span>Customer Mux</span><span>Peyto Feasibility</span><span>Design</span><span></span>
+          <span>LSI</span><span>CKT ID</span><span>Found in</span><span>Ring</span><span>Customer Mux</span><span>Peyto Feasibility</span><span>Design</span><span></span>
         </div>
         @for (x of rows(); track x.lsi + x.ckt_id; let i = $index) {
           <button class="tr row" [style.--i]="i" [class.sel]="selected() === x" (click)="open(x)">
             <span class="mono" data-l="LSI">{{ x.lsi }}</span>
             <span class="ckt" data-l="CKT ID">{{ x.ckt_id || '—' }}</span>
+            <span data-l="Found in" class="src" [class.ssh]="x.ckt_source === 'ssh'">{{ srcLabel[x.ckt_source || ''] }}</span>
             <span data-l="Ring">{{ x.ring || '—' }}</span>
             <span class="mono" data-l="Mux" [title]="x.customer_mux">{{ x.customer_mux ? short(x.customer_mux) : '—' }}</span>
             <span data-l="Peyto"><span class="badge" [class]="x.status"><i class="fa-solid" [class]="icon[x.status]"></i> {{ x.label }}</span></span>
@@ -113,12 +120,12 @@
         }
       </div>
     </section>
-  } @else {
+  } @else if (!running()) {
     <section class="card empty anim" style="--d: 0.42s">
       <app-ring-map class="empty-map" [ring]="demoRing" [paths]="demoPaths" mux="N5" [compact]="true" />
       <div>
         <h3>No check yet</h3>
-        <p>Upload an LSI sheet, or press <b>Try Demo Sheet</b> to see 11 LSIs checked across three NPT rings.</p>
+        <p>Upload an LSI sheet, or press <b>Try Demo Sheet</b> to see the full flow: Chitragupt hits, the SSH (PuTTY) fallback, and an LSI that needs a manual check.</p>
       </div>
     </section>
   }
@@ -138,6 +145,7 @@
     </header>
 
     <p class="reason"><i class="fa-solid fa-circle-info"></i> {{ x.reason }}</p>
+    <app-trace-view [steps]="x.trace || []" />
 
     @if (x.ring) {
       <div class="facts">
@@ -180,7 +188,7 @@
     } @else {
       <div class="nf">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <p>No NPT service carries this LSI in its Customer field. Check the LSI in the source sheet, or search LightSoft manually.</p>
+        <p>@if (x.status === 'manual_check') { The tool could not finish this one automatically (see the steps above). Please check it by hand in Chitragupt / PuTTY / LightSoft. } @else { No CKT ID was found in Chitragupt or on the T3/T4 nodes. Check the LSI in the source sheet. }</p>
       </div>
     }
   </aside>

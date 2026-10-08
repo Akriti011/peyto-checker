@@ -17,3 +17,4 @@ feasibility_labels:
   unprotected: "Feasible - Unprotected"
   not_feasible: "Not Feasible"
   not_found: "CKT Not Found"
+  manual_check: "Manual Check Needed"

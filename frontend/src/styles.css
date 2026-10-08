@@ -81,6 +81,7 @@ a { color: inherit; }
 .badge.protected { background: var(--red); color: var(--white); }
 .badge.unprotected { background: var(--pink); color: var(--ink); box-shadow: inset 0 0 0 1px var(--pink-mid); }
 .badge.not_feasible { background: var(--white); color: var(--red); box-shadow: inset 0 0 0 1.5px var(--red); }
+.badge.manual_check { background: #ffe08a; color: #5c3b00; }
 .badge.not_found { background: var(--blush); color: var(--muted); box-shadow: inset 0 0 0 1px dashed var(--pink-mid); border: 1px dashed var(--pink-mid); }
 
 .page-wrap {

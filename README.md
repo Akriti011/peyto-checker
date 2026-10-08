@@ -3,12 +3,38 @@
 **LSI sheet in → Peyto feasibility out.** An internal POC for the Airtel NOC team working on the ECI NPT network.
 
 1. Reads the LSI sheet (Excel/CSV, any column whose header contains "LSI")
-2. Finds the CKT ID(s) for every LSI
+2. Finds the CKT ID(s) for every LSI in **Chitragupt**, and if Chitragupt has nothing, on the **T3 / T4 MPLS nodes over SSH** (the PuTTY step)
 3. Traces primary and secondary paths on the NPT ring to the Peyto routers (graph check, alarmed links removed)
 4. Checks the service against 7 points from *ECI Design Guidelines for NPT Network using MSPW v5.2*
-5. Returns a filled Excel: original sheet + `Peyto Result` + `Summary`
+5. Returns a filled Excel: original sheet + `Peyto Result` + `Summary` + `Lookup Log`
 
 > ⚠️ **Everything in `backend/sample_data/` is DEMO data.** Ring and node names for MAH4P01A04 and APM4P36C02 come from the training deck so the demo feels familiar. LSI numbers, customer codes, tunnels, alarms and ring MAH4P02B11 are invented. Do not use the demo results for real work.
+
+
+## v0.2: demo / live modes (deployable)
+
+| | **demo** (default) | **live** |
+|---|---|---|
+| Chitragupt | fake portal, auto-started on :8101 | real Chitragupt, read-only service account |
+| T3 / T4 nodes | fake SSH nodes on :2201 / :2202 | real nodes via Netmiko (read-only `show` only) |
+| NMS | `backend/sample_data/` | LightSoft export files (`NMS_EXPORT_DIR`) |
+
+Switch with `PEYTO_MODE` in `.env` (copy `.env.example`). Secrets only in `.env`.
+
+```bash
+cd backend && python -m connectors.preflight --lsi <LSI>   # PASS/FAIL for every system
+docker compose up -d --build                             # deploy on an internal VM
+```
+
+| Where | What |
+|---|---|
+| `backend/connectors/` | Chitragupt (API / browser), SSH fallback, settings, preflight |
+| `backend/config/connectors.yaml` | URLs, SSH command, node tiers, CKT regex (no secrets) |
+| `backend/config/nms_export.yaml` | map real LightSoft export headers to engine columns |
+| `mock_systems/` | fake Chitragupt + fake T3/T4 nodes for demo mode |
+| `docs/RUNBOOK.md` | install, go-live checklist, troubleshooting |
+| `docs/PROPOSAL.md` | one-page proposal for the manager |
+| `docs/FEASIBILITY_CHECKLIST.md` | 15-minute check on the office laptop |
 
 ---
 

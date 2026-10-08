@@ -1,0 +1,15 @@
+services:
+  peyto-checker:
+    build: .
+    image: peyto-checker:latest
+    container_name: peyto-checker
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # live mode reads LightSoft exports from here (mounted below)
+      NMS_EXPORT_DIR: /data/nms_exports
+    volumes:
+      - ./nms_exports:/data/nms_exports
