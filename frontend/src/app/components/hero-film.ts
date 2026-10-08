@@ -143,7 +143,7 @@ export class HeroFilm implements AfterViewInit, OnDestroy {
     try {
       const page = document.querySelector('app-landing') as HTMLElement;
       const bytes = await exportFilm(this.film!, page, (p, msg) => this.exportMsg.set(`${Math.round(p * 100)}%  ·  ${msg}`));
-      this.exportMsg.set(`Done ✓  PeytoChecker_Hero_4K.mp4 (${(bytes / 1e6).toFixed(1)} MB) Downloads mein save hua`);
+      this.exportMsg.set(`Done ✓  (${(bytes / 1e6).toFixed(1)} MB) Downloads mein save hua`);
     } catch (e: any) {
       this.exportMsg.set('Export fail: ' + (e?.message || e));
     } finally {

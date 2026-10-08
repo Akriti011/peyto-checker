@@ -1,4 +1,19 @@
-<app-hero-film (time)="onTime($event)" />
+@if (exportMode) {
+  <!-- live WebGL film, only used to render the hero videos (see film-export.ts) -->
+  <app-hero-film (time)="onTime($event)" />
+} @else {
+  <!-- pre-rendered film: plays the same in every browser, no WebGL needed -->
+  <video #vid class="bg-video" autoplay [muted]="true" playsinline preload="auto"
+         (timeupdate)="onTime(vid.currentTime)" (ended)="onTime(filmLength)">
+    <source src="hero/hero-portrait.mp4" type="video/mp4" media="(max-aspect-ratio: 3/4)" />
+    <source src="hero/hero-1080p.mp4" type="video/mp4" />
+  </video>
+  @if (!ended()) {
+    <button class="film-btn" type="button" (click)="skip(vid)">Skip intro <i class="fa-solid fa-forward"></i></button>
+  } @else {
+    <button class="film-btn light" type="button" (click)="replay(vid)"><i class="fa-solid fa-rotate-right"></i> Replay</button>
+  }
+}
 <div class="scrim" [class.on]="ended()"></div>
 
 <main class="page" [class.show]="ended()">

@@ -4,11 +4,19 @@
  * a minute instead of hours. Open  http://localhost:4200/?export  and press the button.
  *
  * Every frame = WebGL film + labels + the final hero text, drawn at 4K.
+ *
+ * Web versions for the landing page (film + labels only; the page adds the hero itself):
+ *   ?export&w=1920&h=1080&dpr=1&hero=0&mbps=10   -> hero-1080p.mp4  (desktop)
+ *   ?export&w=540&h=960&dpr=2&hero=0&mbps=8      -> hero-portrait.mp4 (phones)
  */
 import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
 import { FILM_LENGTH, Film3D } from './film3d';
 
-const W = 3840, H = 2160, CSS_W = 1920, CSS_H = 1080, FPS = 30;
+const arg = new URLSearchParams(location.search);
+const CSS_W = Number(arg.get('w')) || 1920, CSS_H = Number(arg.get('h')) || 1080, DPR = Number(arg.get('dpr')) || 2;
+const W = CSS_W * DPR, H = CSS_H * DPR, FPS = 30;
+const HERO = arg.get('hero') !== '0';            // bake the final hero text into the video
+const BITRATE = (Number(arg.get('mbps')) || 45) * 1e6;
 const TAIL = 1.5;                       // hold the final frame a little
 const clamp = (x: number) => Math.max(0, Math.min(1, x));
 
@@ -23,7 +31,7 @@ export async function exportFilm(film: Film3D, page: HTMLElement, onProgress: (p
   const scale = Math.min(window.innerWidth / CSS_W, window.innerHeight / CSS_H);
   host.style.setProperty('--export-scale', String(scale));
   await new Promise(r => setTimeout(r, 120));
-  film.resize(CSS_W, CSS_H, 2);
+  film.resize(CSS_W, CSS_H, DPR);
 
   // measure the final hero layout once (at t = 16 everything is fully revealed)
   (window as any).__film.seek(FILM_LENGTH + 0.5);
@@ -33,7 +41,7 @@ export async function exportFilm(film: Film3D, page: HTMLElement, onProgress: (p
     return { x: (r.left - o.left) / scale, y: (r.top - o.top) / scale, w: r.width / scale, h: r.height / scale };
   };
   const q = (s: string) => page.querySelector(s) as HTMLElement;
-  const pieces: Piece[] = [
+  const pieces: Piece[] = !HERO ? [] : [
     { el: q('.brand'), at: 14.6 }, { el: q('.title'), at: 14.85 },
     { el: q('.tag'), at: 15.15 }, { el: q('.cta'), at: 15.4 },
   ];
@@ -44,18 +52,18 @@ export async function exportFilm(film: Film3D, page: HTMLElement, onProgress: (p
   const ctx = out.getContext('2d')!;
 
   // pick a codec the machine can do at 4K
-  const candidates = ['avc1.640034', 'avc1.640033', 'avc1.4d0034'];
+  const candidates = ['avc1.640034', 'avc1.640033', 'avc1.4d0034', 'avc1.640028'];
   let codec = '';
   for (const c of candidates) {
-    const sup = await VideoEncoder.isConfigSupported({ codec: c, width: W, height: H, bitrate: 45e6, framerate: FPS });
+    const sup = await VideoEncoder.isConfigSupported({ codec: c, width: W, height: H, bitrate: BITRATE, framerate: FPS });
     if (sup.supported) { codec = c; break; }
   }
-  if (!codec) throw new Error('Is laptop pe 4K H.264 encoder nahi mila.');
+  if (!codec) throw new Error(`Is laptop pe ${W}x${H} H.264 encoder nahi mila.`);
 
   const muxer = new Muxer({ target: new ArrayBufferTarget(), video: { codec: 'avc', width: W, height: H, frameRate: FPS }, fastStart: 'in-memory' });
   let encErr: any = null;
   const enc = new VideoEncoder({ output: (chunk, meta) => muxer.addVideoChunk(chunk, meta), error: e => (encErr = e) });
-  enc.configure({ codec, width: W, height: H, bitrate: 45e6, framerate: FPS, bitrateMode: 'variable', latencyMode: 'quality' });
+  enc.configure({ codec, width: W, height: H, bitrate: BITRATE, framerate: FPS, bitrateMode: 'variable', latencyMode: 'quality' });
 
   const limit = Number(new URLSearchParams(location.search).get('frames')) || Infinity;   // quick test: ?export&frames=10
   const total = Math.min(limit, Math.round((FILM_LENGTH + TAIL) * FPS));
@@ -66,7 +74,7 @@ export async function exportFilm(film: Film3D, page: HTMLElement, onProgress: (p
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.filter = 'none'; ctx.globalAlpha = 1;
     ctx.drawImage(film.glCanvas, 0, 0, W, H);
-    ctx.scale(2, 2);                                  // draw overlays in css px
+    ctx.scale(DPR, DPR);                              // draw overlays in css px
     drawLabels(ctx, film);
     pieces.forEach((p, k) => drawPiece(ctx, p, rects[k], t, logoImg));
     const frame = new VideoFrame(out, { timestamp: Math.round(i * 1e6 / FPS), duration: Math.round(1e6 / FPS) });
@@ -80,7 +88,7 @@ export async function exportFilm(film: Film3D, page: HTMLElement, onProgress: (p
   muxer.finalize();
   const blob = new Blob([(muxer.target as ArrayBufferTarget).buffer], { type: 'video/mp4' });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = 'PeytoChecker_Hero_4K.mp4';
+  a.href = URL.createObjectURL(blob); a.download = HERO ? 'PeytoChecker_Hero_4K.mp4' : `hero-${CSS_W}x${CSS_H}.mp4`;
   document.body.appendChild(a); a.click(); a.remove();
 
   document.body.classList.remove('film-exporting');

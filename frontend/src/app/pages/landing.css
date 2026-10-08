@@ -9,6 +9,22 @@
 .page > .hero { pointer-events: none; }
 .hero a { pointer-events: auto; }
 
+/* pre-rendered hero film, full screen */
+.bg-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; background: #050102; }
+
+.film-btn {
+  position: absolute; right: clamp(14px, 2vw, 36px); bottom: clamp(14px, 2vh, 30px); z-index: 6;
+  font: 500 clamp(12px, 0.7vw, 18px) var(--font-display); letter-spacing: 0.04em; color: rgba(255, 225, 228, 0.8);
+  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 214, 220, 0.25);
+  border-radius: 999px; padding: 0.6em 1.1em; cursor: pointer; backdrop-filter: blur(6px);
+  transition: color 0.2s, background 0.2s;
+}
+.film-btn:hover { color: #fff; background: rgba(228, 0, 0, 0.35); }
+.film-btn i { margin: 0 2px; font-size: 0.85em; }
+/* Replay sits on the light page background once the film ends */
+.film-btn.light { color: var(--red); background: var(--white); border-color: var(--pink-mid); box-shadow: var(--nav-shadow); }
+.film-btn.light:hover { color: var(--white); background: var(--red); }
+
 /* light page background (same as /console), faded in over the film when it ends */
 .scrim { position: absolute; inset: 0; z-index: 1; opacity: 0;
   background:
