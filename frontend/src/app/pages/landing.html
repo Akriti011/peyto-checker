@@ -1,39 +1,24 @@
-<div class="bg"><app-ring-bg /></div>
+<app-hero-film (time)="t.set($event)" />
 
-<main class="page">
-  <app-header />
+<main class="page" [style.--rt]="t()">
+  <app-header class="hdr" />
 
   <section class="hero">
-    <div class="trust anim" style="--d: 0.05s">
-      <span class="avatar a1"><span><i class="fa-solid fa-network-wired"></i></span></span>
-      <span class="avatar a2"><span><i class="fa-solid fa-tower-broadcast"></i></span></span>
-      <span class="avatar a3"><span><i class="fa-solid fa-route"></i></span></span>
-      <span class="trust-pill">Built for Airtel NOC &middot; ECI NPT Network</span>
-    </div>
-
-    <h1 class="headline anim-none">
-      <span class="line l1">LSI to Peyto,</span>
-      <span class="line l2">Checked In Seconds</span>
-    </h1>
-
-    <p class="sub anim" style="--d: 0.28s">
-      Drop your LSI sheet. We find every CKT ID, trace primary and secondary paths across the
-      NPT ring to the Peyto routers, and fill your feasibility sheet automatically.
-    </p>
-
-    <a class="cta" routerLink="/console" style="--d: 0.4s">
-      Start a Check <i class="fa-solid fa-arrow-right"></i>
-    </a>
+    <img class="brand r1" src="hero/logo.png" alt="airtel" />
+    <h1 class="title r2">PEYTO CHECKER</h1>
+    <p class="tag r3">Automated network feasibility,<br />from LSI to protected path.</p>
+    <a class="cta r4" routerLink="/console">Upload LSI Excel <i class="fa-solid fa-arrow-right"></i></a>
   </section>
 
-  <footer class="stats">
-    @for (s of stats(); track s.label; let i = $index) {
-      <div class="stat anim" [style.--d]="(0.5 + i * 0.08) + 's'">
-        <span class="glyph">{{ s.glyph }}</span>
-        <span class="value" [countUp]="s.value" [decimals]="s.dec" [suffix]="s.suffix"
-              [duration]="1500 + i * 80" [delay]="480 + i * 90"></span>
-        <span class="label">{{ s.label }}</span>
-      </div>
+  <footer class="stats r5">
+    @if (t() > 15.6) {
+      @for (s of stats(); track s.label; let i = $index) {
+        <div class="stat">
+          <span class="value" [countUp]="s.value" [decimals]="s.dec" [suffix]="s.suffix"
+                [duration]="1400 + i * 80" [delay]="i * 90"></span>
+          <span class="label">{{ s.label }}</span>
+        </div>
+      }
     }
   </footer>
 </main>
