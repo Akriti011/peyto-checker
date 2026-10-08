@@ -46,12 +46,7 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
 
   onVideoEnd() { this.ended.set(true); }
 
-  /** the recording shows the old landing UI after this point, so freeze on the network frame */
-  private readonly cut = 14.2;
-  onTime(v: HTMLVideoElement) {
-    this.t.set(v.currentTime);
-    if (v.currentTime >= this.cut && !this.ended()) { v.pause(); this.onVideoEnd(); }
-  }
-  skip(v: HTMLVideoElement) { v.currentTime = this.cut; v.pause(); this.onVideoEnd(); }
+  onTime(v: HTMLVideoElement) { this.t.set(v.currentTime); }
+  skip(v: HTMLVideoElement) { v.currentTime = v.duration; this.onVideoEnd(); }
   ngOnDestroy() { document.body.classList.remove('lock'); }
 }
