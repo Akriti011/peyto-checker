@@ -64,15 +64,29 @@ For the headless-browser Chitragupt strategy build with `--build-arg WITH_BROWSE
 5. **Rules**: team's feasibility labels and thresholds in `backend/config/rules.yaml`.
 6. **Validate**: run 20–30 LSIs that were already done by hand, compare, fix rules.
 
-## 6. Security rules
+## 6. Login (OLM ID + OTP)
 
-- Only **read-only service accounts**. Never a personal ID, never the shared NMS password.
+With `PEYTO_AUTH=olm` (default) every user logs in from the Check page with their
+**OLM ID + password**, then the **OTP** Chitragupt sends. The same OLM login is used
+for the T3/T4 SSH step (and later CFM / LightSoft NMS).
+
+- The password stays only in the server's memory for that session; never on disk, never in logs, never sent back to the browser.
+- Auto logout after 60 min idle or 8 h (`auth.idle_minutes`, `auth.max_hours` in `connectors.yaml`).
+- Each user sees only their own results.
+- If Chitragupt logs the bot out mid-batch, the rest of the LSIs become Manual Check and the UI asks to log in again.
+- Demo: any OLM ID, password `demo`, OTP `123456`.
+- If IT later gives a bot ID without OTP: `PEYTO_AUTH=service` and fill the service accounts in `.env`.
+- Preflight on the command line asks for OLM ID, password and OTP the same way.
+
+## 7. Security rules
+
+- Either the user's own OLM login (typed in the UI, memory only) or read-only service accounts. Never a password in code or config.
 - Secrets live only in `.env` (git-ignored) or the VM's environment.
 - SSH sends only commands starting with `show` / `display`; anything else is blocked in code.
 - One batch at a time, small delay between Chitragupt searches.
 - The app never writes to Chitragupt, the nodes or the NMS.
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
@@ -85,7 +99,7 @@ For the headless-browser Chitragupt strategy build with `--build-arg WITH_BROWSE
 
 Logs: terminal / `docker compose logs`. Each result Excel also has a **Lookup Log** sheet.
 
-## 8. Tests
+## 9. Tests
 
 ```bash
 cd backend && python -m pytest -q

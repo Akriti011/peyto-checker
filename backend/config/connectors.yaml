@@ -4,6 +4,16 @@
 #   demo -> fake systems from mock_systems/ (works on any laptop, synthetic data)
 #   live -> real Chitragupt / T3-T4 nodes / NMS export (only inside Airtel network)
 
+# ---------------------------------------------------------------- Login
+auth:
+  # olm     -> every user logs in from the Peyto UI with OLM ID + password + OTP.
+  #            Kept in memory only, wiped on logout / timeout. Never written to disk.
+  # service -> service accounts from .env (only if IT gives a bot ID without OTP)
+  mode: olm
+  idle_minutes: 60               # auto logout after this much inactivity
+  max_hours: 8                   # hard limit, then login again
+  ssh_uses_olm: true             # T3/T4 nodes take the same OLM ID + password
+
 ckt_id_regex: '\b[A-Z][A-Z0-9]{1,9}-T\d{4,}[A-Za-z0-9_\-]*'
 retries: 2                 # extra attempts when a system times out
 retry_wait_seconds: 2
@@ -21,9 +31,16 @@ chitragupt:
   live:
     base_url: ""                   # comes from CHITRAGUPT_URL in .env
   login:
-    path: "/login"                 # "" if the API needs no login
-    username_field: "username"
+    path: "/login"                 # "" if the portal needs no login
+    username_field: "username"     # form field names (F12 > Elements on the login page)
     password_field: "password"
+    failed_marker: "Invalid"       # text the portal shows on a wrong password
+  otp:
+    enabled: true
+    path: "/otp"
+    field: "otp"
+    required_regex: 'name=["\x27]?otp\b'   # page text that means "OTP is being asked"
+    failed_marker: "Wrong OTP"
   api:
     search_path: "/api/search?lsi={lsi}"
   browser:
@@ -31,6 +48,8 @@ chitragupt:
     username_selector: "#username"
     password_selector: "#password"
     submit_selector: "#login"
+    otp_selector: "#otp"
+    otp_submit_selector: "#verify"
     search_selector: "input[type=search]"
     search_button_selector: ""     # "" = press Enter
 

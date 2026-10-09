@@ -24,7 +24,8 @@ def _tcp(host, port, timeout=5):
         return False, f"{type(e).__name__}: {e}"
 
 
-def run(s=None, lsi: str | None = None):
+def run(s=None, lsi: str | None = None, chitragupt_client=None):
+    """chitragupt_client: an already logged-in client (OLM session). Not closed here."""
     from urllib.parse import urlparse
     from .chitragupt import make as make_chit
     from .ssh_lookup import SshCktFinder
@@ -46,8 +47,11 @@ def run(s=None, lsi: str | None = None):
         ok, d = _tcp(u.hostname, u.port or (443 if u.scheme == "https" else 80))
         add("Chitragupt", f"Network to {u.hostname}", ok, d)
         if ok:
-            add("Chitragupt", "Service account set", bool(s.chitragupt_user), "CHITRAGUPT_USER in .env")
-            c = make_chit(s)
+            if chitragupt_client is None and s.auth_mode == "service":
+                add("Chitragupt", "Service account set", bool(s.chitragupt_user), "CHITRAGUPT_USER in .env")
+            c = chitragupt_client or make_chit(s)
+            if chitragupt_client is not None:
+                add("Chitragupt", "OLM login + OTP", c.state == "logged_in", f"logged in as {c.user}")
             try:
                 t = time.perf_counter()
                 r = c.lookup(lsi or "0000000")
@@ -56,7 +60,8 @@ def run(s=None, lsi: str | None = None):
             except ConnectorError as e:
                 add("Chitragupt", "Login + search", False, str(e))
             finally:
-                c.close()
+                if chitragupt_client is None:
+                    c.close()
 
     # ---- SSH nodes
     f = SshCktFinder(s)
@@ -106,7 +111,24 @@ def main():
     ap = argparse.ArgumentParser(description="Check that Peyto Checker can reach every system (read-only)")
     ap.add_argument("--lsi", help="one real LSI to try end to end (optional)")
     a = ap.parse_args()
-    res = run(lsi=a.lsi)
+    s = settings_mod.load()
+    client = None
+    if s.auth_mode == "olm":
+        # Same as the UI: OLM ID + password + OTP, typed here, kept only in memory
+        import getpass
+        from .chitragupt import make as make_chit
+        olm = input("OLM ID: ").strip()
+        pw = getpass.getpass("OLM password (not shown, not saved): ")
+        client = make_chit(s)
+        try:
+            if client.start_login(olm, pw) == "otp_required":
+                client.submit_otp(input("OTP: ").strip())
+        except ConnectorError as e:
+            print(f"FAIL  Chitragupt login: {e}")
+        s = s.for_user(olm, pw)
+    res = run(s, lsi=a.lsi, chitragupt_client=client)
+    if client:
+        client.close()
     w = max(len(r["system"] + r["check"]) for r in res) + 3
     for r in res:
         print(f"{'PASS' if r['ok'] else 'FAIL'}  {(r['system'] + ': ' + r['check']).ljust(w)} {r['detail']}")

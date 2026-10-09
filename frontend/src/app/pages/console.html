@@ -8,7 +8,9 @@
     <p class="lead anim" style="--d: 0.2s">Upload the LSI sheet you received. Every LSI is searched in Chitragupt (or on the T3/T4 nodes if Chitragupt has nothing), traced on its ring to Peyto, and checked against the ECI design guideline.</p>
   </section>
 
-  <section class="top-grid">
+  <app-olm-login />
+
+  <section class="top-grid" [class.locked]="locked()">
     <!-- upload -->
     <div class="card upload anim" style="--d: 0.26s">
       <label class="drop" [class.drag]="dragging()" [class.has]="file()"
@@ -31,15 +33,17 @@
       </label>
 
       <div class="actions">
-        <button class="btn btn-red" [disabled]="!file() || running()" (click)="run()">
+        <button class="btn btn-red" [disabled]="!file() || running() || locked()" (click)="run()">
           <i class="fa-solid fa-bolt"></i> Run Check
         </button>
-        <button class="btn btn-ghost" [disabled]="running()" (click)="run(true)">
+        <button class="btn btn-ghost" [disabled]="running() || locked()" (click)="run(true)">
           <i class="fa-solid fa-flask"></i> Try Demo Sheet
         </button>
       </div>
       <a class="demo-link" href="/api/demo-sheet"><i class="fa-solid fa-download"></i> Download the demo sheet to see the format</a>
+      @if (locked()) { <div class="lock-note"><i class="fa-solid fa-lock"></i> Login with your OLM ID above to run a check</div> }
       @if (error()) { <div class="error"><i class="fa-solid fa-circle-exclamation"></i> {{ error() }}</div> }
+      @if (notice()) { <div class="error warn"><i class="fa-solid fa-triangle-exclamation"></i> {{ notice() }}</div> }
     </div>
 
     <!-- pipeline -->

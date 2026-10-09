@@ -6,13 +6,14 @@ import { Header } from '../components/header';
 import { RingMap } from '../components/ring-map';
 import { LiveProgress } from '../components/live-progress';
 import { TraceView } from '../components/trace-view';
+import { OlmLogin } from '../components/olm-login';
 
 type Filter = 'all' | Status | 'design' | 'ssh';
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 @Component({
   selector: 'app-console',
-  imports: [FormsModule, CountUp, Header, RingMap, LiveProgress, TraceView],
+  imports: [FormsModule, CountUp, Header, RingMap, LiveProgress, TraceView, OlmLogin],
   templateUrl: './console.html',
   styleUrl: './console.css',
 })
@@ -22,6 +23,9 @@ export class Console implements OnDestroy {
   readonly icon = statusIcon;
   readonly srcLabel = sourceLabel;
   readonly health = this.api.health;
+  /** olm mode: Run Check stays locked until the OLM login (with OTP) is done */
+  readonly locked = computed(() => (this.health()?.auth ?? this.api.session()?.auth) === 'olm' && !this.api.session()?.logged_in);
+  readonly notice = signal('');
 
   readonly steps = [
     { icon: 'fa-file-excel', title: 'Read LSI sheet', sub: 'Find the LSI column' },
@@ -129,7 +133,8 @@ export class Console implements OnDestroy {
 
   async run(demo = false) {
     if (this.running()) return;
-    this.running.set(true); this.error.set(''); this.selected.set(null);
+    if (this.locked()) { this.error.set('Login with your OLM ID + OTP first (step 1 above)'); return; }
+    this.running.set(true); this.error.set(''); this.notice.set(''); this.selected.set(null);
     this.liveRows.set([]); this.progress.set({ done: 0, total: 0, current: '' }); this.step.set(0);
     try {
       const { job_id, total } = await this.api.startJob(demo ? null : this.file());
@@ -148,12 +153,14 @@ export class Console implements OnDestroy {
         this.step.set(4); await sleep(300);
         const full = await this.api.job(job_id, 0);
         this.result.set({ job_id, file: full.file, lsi_column: full.lsi_column, mode: full.mode, summary: full.summary!, rows: full.rows });
+        if (full.alerts?.length) { this.notice.set(full.alerts.join(' · ') + ' Affected LSIs are marked Manual Check.'); this.api.loadSession(); }
         this.filter.set('all'); this.query.set('');
         this.step.set(this.steps.length);
         setTimeout(() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
         break;
       }
     } catch (e: any) {
+      if (e?.status === 401) this.api.loadSession();
       this.error.set(e?.error?.detail || 'Could not reach the checker service. Is the backend running?');
       this.step.set(-1);
     } finally { this.running.set(false); }

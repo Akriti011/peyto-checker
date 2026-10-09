@@ -3,6 +3,13 @@
 Office laptop milte hi (ya senior ke system pe, unki permission se) yeh check karo.
 **Kuch copy ya save nahi karna**, sirf haan/na aur format note karna hai.
 
+## 0. OLM login
+- [ ] Chitragupt / CFM / PuTTY / LightSoft sab OLM ID se login hote hain? (haan)
+- [ ] OTP har login pe aata hai ya din mein ek baar?
+- [ ] OTP SMS pe aata hai ya authenticator app pe?
+- [ ] Chitragupt ke login page pe user / password / OTP box ke `id` kya hain? (Inspect se)
+- [ ] Manager OK: "apni OLM ID se khud login karke read-only automation chala sakti hoon?"
+
 ## A. Chitragupt
 - [ ] F12 → Network tab kholo → ek LSI search karo
 - [ ] Koi request dikhi jiska Response mein CKT ID hai? (haan / na)

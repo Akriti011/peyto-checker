@@ -22,10 +22,16 @@ export interface CheckResult { job_id: string; file: string; lsi_column: string;
 export interface JobState {
   job_id: string; file: string; lsi_column: string; status: 'queued' | 'running' | 'done' | 'error';
   total: number; done: number; current: string; rows: ResultRow[]; row_offset: number;
-  summary: Summary | null; error: string; mode: string;
+  summary: Summary | null; error: string; mode: string; alerts: string[]; olm_id: string;
+}
+export interface AuthSession {
+  logged_in: boolean; state: 'logged_out' | 'otp_required' | 'logged_in'; auth: 'olm' | 'service';
+  olm_id?: string; expires_in_s?: number;
+  systems?: { chitragupt: string; ssh: string; cfm: string; nms: string };
 }
 export interface Health {
-  ok: boolean; version: string; mode: 'demo' | 'live'; nms_loaded: boolean; nms_error: string;
+  ok: boolean; version: string; mode: 'demo' | 'live'; auth: 'olm' | 'service'; demo_login_hint: string;
+  nms_loaded: boolean; nms_error: string;
   chitragupt: { strategy: string; url_set: boolean; login_set: boolean };
   ssh: { tiers: Record<string, number>; jump_host: boolean; device_type: string };
   nms: { source: string; export_dir: string };
@@ -43,8 +49,28 @@ export class Api {
   readonly last = signal<CheckResult | null>(null);
   /** demo / live, shown in the header */
   readonly health = signal<Health | null>(null);
+  /** OLM login state (auth = olm) */
+  readonly session = signal<AuthSession | null>(null);
 
-  constructor() { this.loadHealth(); }
+  constructor() { this.loadHealth(); this.loadSession(); }
+
+  async loadSession() {
+    try { this.session.set(await firstValueFrom(this.http.get<AuthSession>('/api/auth/session'))); }
+    catch { this.session.set(null); }
+    return this.session();
+  }
+  async login(olm_id: string, password: string) {
+    const s = await firstValueFrom(this.http.post<AuthSession>('/api/auth/login', { olm_id, password }));
+    this.session.set(s); return s;
+  }
+  async verifyOtp(otp: string) {
+    const s = await firstValueFrom(this.http.post<AuthSession>('/api/auth/otp', { otp }));
+    this.session.set(s); return s;
+  }
+  async logout() {
+    const s = await firstValueFrom(this.http.post<AuthSession>('/api/auth/logout', {}));
+    this.session.set(s); this.last.set(null); return s;
+  }
 
   async loadHealth() {
     try { this.health.set(await firstValueFrom(this.http.get<Health>('/api/health'))); } catch { this.health.set(null); }

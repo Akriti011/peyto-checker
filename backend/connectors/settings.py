@@ -4,7 +4,7 @@ Non-secret settings: backend/config/connectors.yaml
 Secrets + mode:      .env in the project root (copy .env.example), or real env vars
 """
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import yaml
@@ -44,10 +44,24 @@ class Settings:
     def is_demo(self):
         return self.mode == "demo"
 
+    @property
+    def auth_mode(self):
+        return (self.cfg.get("auth") or {}).get("mode", "service")
+
+    def for_user(self, olm_id: str, password: str) -> "Settings":
+        """Copy used for one logged-in user's jobs: SSH logs in with their OLM ID.
+        The password only ever lives in memory."""
+        if not (self.cfg.get("auth") or {}).get("ssh_uses_olm", True):
+            return self
+        return replace(self, ssh_user=olm_id, ssh_pass=password,
+                       ssh_jump_user=olm_id if not os.getenv("SSH_JUMP_USER") else self.ssh_jump_user,
+                       ssh_jump_pass=password if not os.getenv("SSH_JUMP_PASS") else self.ssh_jump_pass)
+
     def public(self):
         """Safe to show in the UI: no secrets."""
         return {
             "mode": self.mode,
+            "auth": self.auth_mode,
             "chitragupt": {"strategy": self.cfg["chitragupt"]["strategy"], "url_set": bool(self.chitragupt_url),
                            "login_set": bool(self.chitragupt_user)},
             "ssh": {"tiers": {k: len(v) for k, v in self.ssh_nodes.items()}, "jump_host": bool(self.ssh_jump_host),
@@ -58,6 +72,8 @@ class Settings:
 
 def load() -> Settings:
     cfg = yaml.safe_load(CFG_PATH.read_text())
+    if os.getenv("PEYTO_AUTH"):                       # olm | service, overrides connectors.yaml
+        cfg.setdefault("auth", {})["mode"] = os.getenv("PEYTO_AUTH").strip().lower()
     mode = os.getenv("PEYTO_MODE", "demo").strip().lower()
     if mode not in ("demo", "live"):
         raise ValueError(f"PEYTO_MODE must be demo or live, got '{mode}'")
@@ -65,7 +81,7 @@ def load() -> Settings:
 
     if mode == "demo":
         url = cfg["chitragupt"]["demo"]["base_url"]
-        cu, cp = "demo-user", os.getenv("MOCK_CHITRAGUPT_PASSWORD", "demo")
+        cu, cp = "svc_demo", os.getenv("MOCK_CHITRAGUPT_PASSWORD", "demo")   # svc_* = no OTP in the fake portal
         su, sp = "demo-user", os.getenv("MOCK_SSH_PASSWORD", "demo")
         nodes = cfg["ssh"]["demo"]["nodes"]
         export = BACKEND / cfg["nms"]["demo"]["export_dir"]

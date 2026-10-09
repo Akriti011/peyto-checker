@@ -190,3 +190,9 @@
 .mode-pill { margin-left: 10px; padding: 2px 10px; border-radius: 99px; font-size: 0.75em; letter-spacing: 0.04em;
   background: var(--blush); color: var(--muted); border: 1px dashed var(--pink-mid); }
 .mode-pill.live { background: var(--red); color: var(--white); border-color: var(--red); }
+
+/* OLM login gating */
+.top-grid.locked .upload .drop { opacity: 0.55; }
+.lock-note { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.lock-note i { color: var(--red); margin-right: 4px; }
+.error.warn { color: #5c3b00; background: #fff6d6; }

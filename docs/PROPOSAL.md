@@ -37,12 +37,14 @@ Anything the tool is unsure about is marked **Manual Check Needed**, never guess
 | Retries, per-LSI error handling, live progress | Done |
 | Docker package, `.env` secrets, runbook, preflight check | Done |
 | Demo mode with simulated Chitragupt / nodes / NMS (no Airtel data) | Done |
+| OLM ID + OTP login from the tool's page (one login for all systems) | Done |
 
 Switching from demo to live is a configuration change (`PEYTO_MODE=live`), not a code change.
 
 ## Safety by design
 
-- Read-only service accounts only. No personal IDs, no shared passwords in code.
+- Users log in with their own OLM ID + OTP from the tool's page; the password is kept only in memory for that session and wiped on logout / timeout. No passwords in code or config.
+- If IT prefers, a read-only bot ID can replace this later with a config switch.
 - SSH can only send `show` / `display` commands; everything else is blocked in code.
 - Never writes to Chitragupt, network elements or the NMS.
 - One batch at a time with a delay between searches, so no load on Chitragupt.
@@ -50,8 +52,8 @@ Switching from demo to live is a configuration change (`PEYTO_MODE=live`), not a
 
 ## What I need
 
-1. **Read-only Chitragupt service account**
-2. **Read-only SSH account** for the T3 / T4 MPLS nodes (and jump server details if used)
+1. **Permission to run read-only automation with my OLM login** (or a read-only bot OLM ID from IT)
+2. **Jump server details** for the T3 / T4 MPLS nodes, if used
 3. **LightSoft export access** (L2VPN service list / topology export); later NBI if possible
 4. **One internal Linux VM** with Docker (2 vCPU, 4 GB RAM is enough)
 5. **1–2 weeks** to validate on 20–30 already-checked LSIs before team use

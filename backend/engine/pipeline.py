@@ -43,17 +43,28 @@ def read_lsis(file_bytes: bytes, filename: str = "sheet.xlsx"):
 class Connections:
     """Everything one batch needs. Built from Settings; closed after the batch."""
 
-    def __init__(self, settings, inventory: Inventory | None = None):
+    def __init__(self, settings, inventory: Inventory | None = None, chitragupt_client=None):
+        """chitragupt_client: an already logged-in client from the user's OLM session
+        (it belongs to the session, so it is not closed after the batch)."""
         from connectors import chitragupt, ssh_lookup
         self.s = settings
         c = settings.cfg
-        self.chitragupt = chitragupt.make(settings) if c["chitragupt"]["enabled"] else None
+        self._own_chit = chitragupt_client is None
+        if not c["chitragupt"]["enabled"]:
+            self.chitragupt = None
+        else:
+            self.chitragupt = chitragupt_client or chitragupt.make(settings)
         self.ssh = ssh_lookup.SshCktFinder(settings) if c["ssh"]["enabled"] else None
         self.nms = inventory or Inventory(settings.nms_export_dir)
         self.retries, self.wait = c.get("retries", 2), c.get("retry_wait_seconds", 2)
+        self.alerts: list[str] = []          # batch-level problems shown in the UI (e.g. session expired)
+
+    def alert(self, msg):
+        if msg not in self.alerts:
+            self.alerts.append(msg)
 
     def close(self):
-        for x in (self.chitragupt, self.ssh):
+        for x in ((self.chitragupt if self._own_chit else None), self.ssh):
             if x:
                 try:
                     x.close()
@@ -61,9 +72,14 @@ class Connections:
                     pass
 
 
-def _safe(source, fn, retries, wait) -> Lookup:
+def _safe(source, fn, retries, wait, conn=None) -> Lookup:
+    from connectors.chitragupt import SessionExpired
     try:
         return with_retries(fn, retries, wait)
+    except SessionExpired as e:
+        if conn is not None:
+            conn.alert(str(e))
+        return Lookup(source, "error", note=str(e))
     except ConnectorError as e:
         return Lookup(source, "error", note=str(e))
     except Exception as e:                      # never let one LSI kill the batch
@@ -80,13 +96,13 @@ def find_ckts(lsi, conn: Connections):
     """-> (ckt_ids, source, trace, had_error)"""
     trace, err = [], False
     if conn.chitragupt:
-        lk = _safe("chitragupt", lambda: conn.chitragupt.lookup(lsi), conn.retries, conn.wait)
+        lk = _safe("chitragupt", lambda: conn.chitragupt.lookup(lsi), conn.retries, conn.wait, conn)
         trace.append(_trace("Chitragupt", lk))
         if lk.found:
             return lk.ckt_ids, "chitragupt", trace, False
         err |= lk.status == "error"
     if conn.ssh:
-        lk = _safe("ssh", lambda: conn.ssh.lookup(lsi), conn.retries, conn.wait)
+        lk = _safe("ssh", lambda: conn.ssh.lookup(lsi), conn.retries, conn.wait, conn)
         trace.append(_trace("SSH (T3/T4)", lk))
         if lk.found:
             return lk.ckt_ids, "ssh", trace, False
@@ -156,4 +172,4 @@ def run(lsis, conn: Connections, cfg=None, progress=None):
         rows.extend(new)
         if progress:
             progress(i, len(lsis), lsi, new)
-    return {"summary": summarize(lsis, rows, t0), "rows": rows}
+    return {"summary": summarize(lsis, rows, t0), "rows": rows, "alerts": list(getattr(conn, "alerts", []))}

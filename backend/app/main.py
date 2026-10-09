@@ -7,12 +7,14 @@ import logging, threading, time, uuid
 from pathlib import Path
 
 import pandas as pd
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Body, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from connectors import settings as settings_mod
+from connectors.base import ConnectorError
+from connectors.session import SessionStore
 from engine.data import Inventory, DATA_DIR
 from engine import pipeline, report, rules
 
@@ -34,6 +36,9 @@ RUN_LOCK = threading.Lock()          # one batch at a time: gentle on Chitragupt
 MAX_JOBS = 20
 INV: Inventory | None = None
 INV_ERROR = ""
+SESSIONS = SessionStore(SETTINGS)
+COOKIE = "peyto_sid"
+OLM = SETTINGS.auth_mode == "olm"
 
 
 def load_inventory():
@@ -77,14 +82,81 @@ def _startup():
 @app.get("/api/health")
 def health():
     return {"ok": True, "version": app.version, **SETTINGS.public(),
-            "nms_loaded": INV is not None, "nms_error": INV_ERROR}
+            "nms_loaded": INV is not None, "nms_error": INV_ERROR,
+            "demo_login_hint": "Any OLM ID · password demo · OTP 123456" if SETTINGS.is_demo and OLM else ""}
+
+
+# ---------------------------------------------------------------- OLM login (auth.mode = olm)
+def _sess(request: Request):
+    return SESSIONS.get(request.cookies.get(COOKIE))
+
+
+def _require_session(request: Request):
+    """olm mode: the caller must be logged in. service mode: no session needed."""
+    if not OLM:
+        return None
+    sess = _sess(request)
+    if not sess or sess.state != "logged_in":
+        raise HTTPException(401, "Login with your OLM ID + OTP first")
+    SESSIONS.touch(sess)
+    return sess
+
+
+def _login_error(e):
+    return JSONResponse({"detail": str(e)}, status_code=401 if "wrong" in str(e).lower() or "olm" in str(e).lower()
+                        else 502)
+
+
+@app.get("/api/auth/session")
+def auth_session(request: Request):
+    return SESSIONS.info(_sess(request))
+
+
+@app.post("/api/auth/login")
+def auth_login(request: Request, body: dict = Body(...)):
+    if not OLM:
+        raise HTTPException(400, "Login is not needed: this server uses service accounts")
+    SESSIONS.end(request.cookies.get(COOKIE))           # one login per browser
+    try:
+        sess = SESSIONS.start(body.get("olm_id", ""), body.get("password", ""))
+    except ConnectorError as e:
+        return _login_error(e)
+    log.info("login started for %s (%s)", sess.olm_id, sess.state)
+    r = JSONResponse(SESSIONS.info(sess))
+    r.set_cookie(COOKIE, sess.sid, httponly=True, samesite="lax", max_age=SESSIONS.max_age)
+    return r
+
+
+@app.post("/api/auth/otp")
+def auth_otp(request: Request, body: dict = Body(...)):
+    sess = _sess(request)
+    if not sess:
+        raise HTTPException(401, "Login expired, enter OLM ID and password again")
+    try:
+        SESSIONS.verify_otp(sess, str(body.get("otp", "")))
+    except ConnectorError as e:
+        return _login_error(e)
+    log.info("login complete for %s", sess.olm_id)
+    return SESSIONS.info(sess)
+
+
+@app.post("/api/auth/logout")
+def auth_logout(request: Request):
+    SESSIONS.end(request.cookies.get(COOKIE))
+    r = JSONResponse({"logged_in": False, "state": "logged_out", "auth": SETTINGS.auth_mode})
+    r.delete_cookie(COOKIE)
+    return r
 
 
 @app.get("/api/preflight")
-def preflight(lsi: str = ""):
+def preflight(request: Request, lsi: str = ""):
     """Read-only connectivity check of every system (same as python -m connectors.preflight)."""
     from connectors import preflight as pf
-    res = pf.run(SETTINGS, lsi or None)
+    sess = _sess(request) if OLM else None
+    if sess and sess.state == "logged_in":
+        res = pf.run(sess.job_settings(), lsi or None, chitragupt_client=sess.chitragupt)
+    else:
+        res = pf.run(SETTINGS, lsi or None)
     return {"mode": SETTINGS.mode, "passed": sum(r["ok"] for r in res), "total": len(res), "checks": res}
 
 
@@ -177,7 +249,7 @@ async def _read_upload(file, demo):
     return df, col, lsis, name
 
 
-def _run_job(job_id, df, lsis):
+def _run_job(job_id, df, lsis, sess=None):
     job = JOBS[job_id]
 
     def progress(done, total, lsi, new_rows):
@@ -188,12 +260,19 @@ def _run_job(job_id, df, lsis):
     with RUN_LOCK:
         job["status"] = "running"
         conn = None
+        if sess:
+            sess.busy = True
         try:
-            conn = pipeline.Connections(SETTINGS, INV)
+            if sess:
+                conn = pipeline.Connections(sess.job_settings(), INV, chitragupt_client=sess.chitragupt)
+            else:
+                conn = pipeline.Connections(SETTINGS, INV)
             result = pipeline.run(lsis, conn, progress=progress)
-            job["xlsx"] = report.build(df, result, SETTINGS.mode)
+            who = f"{SETTINGS.mode} · run by {sess.olm_id}" if sess else SETTINGS.mode
+            job["xlsx"] = report.build(df, result, who)
             with JOBS_LOCK:
-                job.update(status="done", summary=result["summary"], rows=result["rows"], current="")
+                job.update(status="done", summary=result["summary"], rows=result["rows"], current="",
+                           alerts=result.get("alerts", []))
             log.info("job %s done: %s", job_id, result["summary"])
         except Exception as e:
             log.exception("job %s failed", job_id)
@@ -201,9 +280,12 @@ def _run_job(job_id, df, lsis):
         finally:
             if conn:
                 conn.close()
+            if sess:
+                sess.busy = False
+                SESSIONS.touch(sess)
 
 
-def _new_job(name, col, lsis):
+def _new_job(name, col, lsis, sess=None):
     job_id = uuid.uuid4().hex[:10]
     with JOBS_LOCK:
         if len(JOBS) >= MAX_JOBS:
@@ -211,40 +293,51 @@ def _new_job(name, col, lsis):
                 JOBS.pop(k, None)
         JOBS[job_id] = {"job_id": job_id, "file": name, "lsi_column": str(col), "status": "queued", "total": len(lsis),
                         "done": 0, "current": "", "rows": [], "summary": None, "error": "", "created": time.time(),
-                        "mode": SETTINGS.mode}
+                        "mode": SETTINGS.mode, "alerts": [], "owner": sess.sid if sess else "",
+                        "olm_id": sess.olm_id if sess else ""}
     return job_id
 
 
 def _public(job, since=0):
-    j = {k: v for k, v in job.items() if k not in ("xlsx", "rows")}
+    j = {k: v for k, v in job.items() if k not in ("xlsx", "rows", "owner")}
     j["rows"] = job["rows"][since:]
     j["row_offset"] = since
     return j
 
 
+def _own_job(request, job_id):
+    job = JOBS.get(job_id)
+    if not job:
+        raise HTTPException(404, "Job not found (server restarted?)")
+    if OLM and job.get("owner") and job["owner"] != request.cookies.get(COOKIE):
+        raise HTTPException(403, "This result belongs to another user")
+    return job
+
+
 @app.post("/api/jobs")
-async def create_job(file: UploadFile | None = File(None), demo: bool = Form(False)):
+async def create_job(request: Request, file: UploadFile | None = File(None), demo: bool = Form(False)):
+    sess = _require_session(request)
     df, col, lsis, name = await _read_upload(file, demo)
-    job_id = _new_job(name, col, lsis)
-    threading.Thread(target=_run_job, args=(job_id, df, lsis), daemon=True).start()
+    job_id = _new_job(name, col, lsis, sess)
+    threading.Thread(target=_run_job, args=(job_id, df, lsis, sess), daemon=True).start()
     return {"job_id": job_id, "total": len(lsis)}
 
 
 @app.get("/api/jobs/{job_id}")
-def get_job(job_id: str, since: int = 0):
-    job = JOBS.get(job_id)
-    if not job:
-        raise HTTPException(404, "Job not found (server restarted?)")
+def get_job(request: Request, job_id: str, since: int = 0):
+    job = _own_job(request, job_id)
     with JOBS_LOCK:
         return _public(job, since)
 
 
 @app.post("/api/check")
-async def check(file: UploadFile | None = File(None), demo: bool = Form(False)):
+async def check(request: Request, file: UploadFile | None = File(None), demo: bool = Form(False)):
     """Synchronous version (scripts / old UI): waits for the whole batch."""
+    sess = _require_session(request)
     df, col, lsis, name = await _read_upload(file, demo)
-    job_id = _new_job(name, col, lsis)
-    _run_job(job_id, df, lsis)
+    job_id = _new_job(name, col, lsis, sess)
+    import anyio
+    await anyio.to_thread.run_sync(_run_job, job_id, df, lsis, sess)
     job = JOBS[job_id]
     if job["status"] != "done":
         raise HTTPException(500, job["error"])
@@ -253,9 +346,9 @@ async def check(file: UploadFile | None = File(None), demo: bool = Form(False)):
 
 
 @app.get("/api/download/{job_id}")
-def download(job_id: str):
-    job = JOBS.get(job_id)
-    if not job or "xlsx" not in job:
+def download(request: Request, job_id: str):
+    job = _own_job(request, job_id)
+    if "xlsx" not in job:
         raise HTTPException(404, "Result expired, run the check again")
     return Response(job["xlsx"], media_type=XLSX,
                     headers={"Content-Disposition": f'attachment; filename="peyto_result_{job_id}.xlsx"'})
