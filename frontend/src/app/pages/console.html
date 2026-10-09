@@ -4,8 +4,6 @@
   <section class="intro">
     <span class="kicker anim" style="--d: 0.05s"><i class="fa-solid fa-diagram-project"></i> ECI NPT &middot; Peyto Feasibility
       @if (health(); as h) { <span class="mode-pill" [class.live]="h.mode === 'live'">{{ h.mode === 'live' ? 'LIVE' : 'DEMO · synthetic data' }}</span> }</span>
-    <h1 class="section-title title anim" style="--d: 0.12s">LSI Sheet <span class="arrow">&rarr;</span> Peyto Result</h1>
-    <p class="lead anim" style="--d: 0.2s">Upload the LSI sheet you received. Every LSI is searched in Chitragupt (or on the T3/T4 nodes if Chitragupt has nothing), traced on its ring to Peyto, and checked against the ECI design guideline.</p>
   </section>
 
   <app-olm-login />
