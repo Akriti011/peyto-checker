@@ -4,6 +4,10 @@ import { Header } from '../components/header';
 import { HeroFilm } from '../components/hero-film';
 import { FILM_LENGTH } from '../components/film3d';
 
+/** the Airtel logo has dissolved into light by here; the rest plays faster */
+const FAST_FROM = 4.75;
+const FAST_RATE = 1.35;
+
 @Component({
   selector: 'app-landing',
   imports: [RouterLink, Header, HeroFilm],
@@ -32,6 +36,9 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
 
   onTime(t: number) {
     this.t.set(t);
+    const v = this.vid()?.nativeElement;
+    const rate = t >= FAST_FROM ? FAST_RATE : 1;
+    if (v && v.playbackRate !== rate) v.playbackRate = rate;
     const done = t >= FILM_LENGTH;
     if (done !== this.ended()) this.ended.set(done);   // Replay resets it
   }
